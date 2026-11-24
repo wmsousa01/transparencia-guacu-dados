@@ -3,130 +3,219 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Transparência Guaçu · a saúde financeira de Mogi Guaçu</title>
-<meta name="description" content="Infográfico com a saúde financeira da Prefeitura de Mogi Guaçu (SP): receitas, despesas, pessoal, dívida e caixa, a partir dos dados oficiais do Tesouro Nacional e do TCE-SP.">
+<title>Transparência Guaçu · as contas de Mogi Guaçu explicadas</title>
+<meta name="description" content="As contas da Prefeitura de Mogi Guaçu (SP) em linguagem simples: quanto arrecada, como gasta, quanto deve e se o caixa fecha, a partir dos dados oficiais do Tesouro Nacional e do TCE-SP.">
+<meta name="theme-color" content="#123456">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23123456'/%3E%3Crect x='7' y='17' width='4' height='8' rx='1' fill='%23fff'/%3E%3Crect x='14' y='12' width='4' height='13' rx='1' fill='%23fff'/%3E%3Crect x='21' y='7' width='4' height='18' rx='1' fill='%237fd1ae'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="viz-root">
-<header class="topo">
-  <p class="eyebrow">Transparência Guaçu</p>
-  <h1>A saúde financeira de Mogi Guaçu</h1>
-  <p class="lede">Quanto a Prefeitura arrecada, como gasta, quanto deve e se o caixa fecha a conta.
-    Os números vêm dos relatórios que o próprio município entrega ao Tesouro Nacional e ao Tribunal de Contas do Estado.</p>
-  <div class="controles" role="group" aria-label="Como mostrar os valores em reais">
-    <span>Valores em reais:</span>
-    <button type="button" data-modo="real" aria-pressed="true">corrigidos pela inflação</button>
-    <button type="button" data-modo="nominal" aria-pressed="false">da época (nominais)</button>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+<header class="marca">
+  <div class="marca-in">
+    <a class="logo" href="#" aria-label="Transparência Guaçu, início">
+      <svg width="36" height="36" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#ffffff" fill-opacity=".12"/><rect x="7" y="17" width="4" height="8" rx="1" fill="#fff"/><rect x="14" y="12" width="4" height="13" rx="1" fill="#fff"/><rect x="21" y="7" width="4" height="18" rx="1" fill="#7fd1ae"/></svg>
+      <span>Transparência <b>Guaçu</b></span>
+    </a>
+    <p class="selo">Projeto independente · dados oficiais e abertos · não é um site da Prefeitura</p>
   </div>
 </header>
 
-<main>
-  <section aria-labelledby="h-veredito">
-    <h2 id="h-veredito">O resumo de <span data-ano-fechado></span></h2>
-    <p class="nota">Último ano fechado. Cada cartão compara o número com o limite que a lei impõe.</p>
+<nav class="indice" aria-label="Seções da página">
+  <ul>
+    <li><a href="#resumo">Resumo</a></li>
+    <li><a href="#cap-contas">Contas do ano</a></li>
+    <li><a href="#cap-limites">Folha e dívida</a></li>
+    <li><a href="#cap-minimos">Saúde e educação</a></li>
+    <li><a href="#cap-dinheiro">Entradas e gastos</a></li>
+    <li><a href="#sec-comparacao">Comparação</a></li>
+    <li><a href="#cap-fiscalizacao">Fiscalização</a></li>
+    <li><a href="#glossario">Glossário</a></li>
+  </ul>
+</nav>
+
+<main id="conteudo" tabindex="-1">
+  <section class="hero" id="resumo" aria-labelledby="h-veredito">
+    <p class="kicker">As contas da Prefeitura de Mogi Guaçu, explicadas</p>
+    <h1 id="h-veredito">Como a cidade fechou <span data-ano-fechado></span></h1>
+    <p class="lede">Quanto entrou, quanto saiu, quanto a cidade deve e se a lei está sendo cumprida.
+      Tudo a partir dos relatórios que o próprio município entrega ao Tesouro Nacional e ao Tribunal de Contas do Estado.</p>
     <div class="tiles" id="tiles"></div>
-  </section>
-
-  <section aria-labelledby="h-resultado">
-    <h2 id="h-resultado">A conta do ano fecha?</h2>
-    <p class="nota">Receita arrecadada menos despesa empenhada (o que a Prefeitura se comprometeu a pagar) em cada ano.
-      Barra para baixo é déficit: o município gastou mais do que arrecadou e cobriu a diferença com sobras de anos anteriores ou deixou a conta para depois.</p>
-    <figure class="chart" id="c-resultado"></figure>
-  </section>
-
-  <section aria-labelledby="h-caixa">
-    <h2 id="h-caixa">Sobra dinheiro em caixa para pagar o que ficou para trás?</h2>
-    <p class="nota">Dinheiro em caixa no fim do ano, já descontadas as contas que passaram para o ano seguinte (os <em>restos a pagar</em>).
-      Negativo quer dizer que as contas deixadas para depois eram maiores que o dinheiro guardado.</p>
-    <figure class="chart" id="c-caixa"></figure>
-  </section>
-
-  <section aria-labelledby="h-pessoal">
-    <h2 id="h-pessoal">Quanto da receita vai para a folha</h2>
-    <p class="nota">Despesa com pessoal do Executivo como % da Receita Corrente Líquida. A Lei de Responsabilidade Fiscal manda acender alertas em 48,6%, restringe contratações em 51,3% e fixa o teto em 54%.</p>
-    <figure class="chart" id="c-pessoal"></figure>
-  </section>
-
-  <section aria-labelledby="h-divida">
-    <h2 id="h-divida">Quanto a cidade deve</h2>
-    <p class="nota">Dívida consolidada líquida (dívidas menos o dinheiro disponível para pagá-las) como % da Receita Corrente Líquida. O Senado limita municípios a 120%.</p>
-    <figure class="chart" id="c-divida"></figure>
-  </section>
-
-  <section aria-labelledby="h-minimos">
-    <h2 id="h-minimos">Saúde e educação: os mínimos constitucionais</h2>
-    <p class="nota">A Constituição obriga o município a aplicar ao menos 15% da receita de impostos em saúde e 25% em educação.
-      Usamos o cálculo do Tribunal de Contas, o mesmo que ele usa para julgar as contas. Para a saúde mostramos também o SIOPS, o sistema do Ministério da Saúde.
-      Os dois contam despesas de formas diferentes, e em alguns anos a distância é grande.</p>
-    <figure class="chart" id="c-minimos"></figure>
-  </section>
-
-  <section aria-labelledby="h-rcl">
-    <h2 id="h-rcl">A receita por habitante</h2>
-    <p class="nota">Receita Corrente Líquida dividida pela população estimada do ano.</p>
-    <figure class="chart" id="c-rcl"></figure>
-  </section>
-
-  <section aria-labelledby="h-origem">
-    <h2 id="h-origem">De onde vem o dinheiro em <span data-ano-fechado></span></h2>
-    <p class="nota">A maior parte chega por transferências da União e do Estado. A arrecadação própria (IPTU, ISS, ITBI, taxas e serviços) é a parte que o município controla.</p>
-    <figure class="chart" id="c-origem"></figure>
-  </section>
-
-  <section aria-labelledby="h-funcao">
-    <h2 id="h-funcao">Para onde vai o dinheiro em <span data-ano-fechado></span></h2>
-    <p class="nota">Despesa liquidada (serviço entregue ou bem recebido) por área de governo.</p>
-    <figure class="chart" id="c-funcao"></figure>
-  </section>
-
-  <section aria-labelledby="h-fornecedores">
-    <h2 id="h-fornecedores">Quem mais recebeu em <span data-ano-fornecedores></span></h2>
-    <p class="nota" id="nota-fornecedores"></p>
-    <figure class="chart" id="c-fornecedores"></figure>
-    <details class="extra">
-      <summary>Pagamentos a órgãos públicos, encargos e dívida</summary>
-      <p class="nota">INSS, Receita Federal, precatórios no Tribunal de Justiça, parcelas de dívida e repasses a autarquias. São obrigações, não compras.</p>
-      <figure class="chart" id="c-publicos"></figure>
-    </details>
-  </section>
-
-  <section aria-labelledby="h-comparacao" id="sec-comparacao">
-    <h2 id="h-comparacao">Como Mogi Guaçu se compara em <span data-ano-comparacao></span></h2>
-    <p class="nota" id="nota-comparacao"></p>
-    <div class="controles" role="group" aria-label="Grupo de comparação" id="ctl-grupo">
-      <span>Comparar com:</span>
-      <button type="button" data-grupo="regiao" aria-pressed="true">cidades da região</button>
-      <button type="button" data-grupo="porte" aria-pressed="false">cidades do mesmo porte</button>
+    <div class="ajustes">
+      <div class="controles" role="group" aria-labelledby="lbl-modo">
+        <span id="lbl-modo">Mostrar valores em reais</span>
+        <button type="button" data-modo="real" aria-pressed="true">corrigidos pela inflação</button>
+        <button type="button" data-modo="nominal" aria-pressed="false">da época</button>
+      </div>
+      <p class="dica">Corrigir pela inflação deixa os anos comparáveis: R$ 100 de 2015 compravam mais do que R$ 100 hoje.
+        Os valores ficam a preços de <span data-ano-fechado></span>.</p>
     </div>
-    <div class="controles" role="group" aria-label="Indicador" id="ctl-metrica"></div>
-    <p class="leitura" id="leitura-comparacao"></p>
-    <figure class="chart" id="c-comparacao"></figure>
   </section>
 
-  <section aria-labelledby="h-pareceres">
-    <h2 id="h-pareceres">O que o Tribunal de Contas decidiu</h2>
-    <p class="nota">Parecer prévio do TCE-SP sobre as contas anuais da Prefeitura. Quem julga em definitivo é a Câmara Municipal.
-      O arquivo público do Tribunal só vai até o exercício de <span data-parecer-ultimo></span>. Os anos seguintes ainda não foram publicados nesse conjunto de dados.</p>
-    <ol class="pareceres" id="pareceres"></ol>
+  <!-- 1 -->
+  <div class="capitulo" id="cap-contas">
+    <p class="cap-num">1 · As contas do ano</p>
+
+    <section class="bloco" aria-labelledby="h-resultado">
+      <h2 id="h-resultado">A conta do ano fecha?</h2>
+      <p class="resposta" id="r-resultado"></p>
+      <p class="como-ler"><b>Como ler:</b> cada barra é um ano. Azul para cima: sobrou dinheiro (<button type="button" class="termo" data-termo="superavit">superávit</button>). Vermelho para baixo: faltou (<button type="button" class="termo" data-termo="deficit">déficit</button>).</p>
+      <figure class="chart" id="c-resultado"></figure>
+      <details class="entenda"><summary>Entenda este número</summary>
+        <p>É a receita arrecadada menos a despesa <button type="button" class="termo" data-termo="empenho">empenhada</button>, ou seja, o que a Prefeitura se comprometeu a pagar.
+          Quando falta, o município cobre a diferença com sobras de anos anteriores ou deixa contas para o ano seguinte.</p>
+      </details>
+    </section>
+
+    <section class="bloco" aria-labelledby="h-caixa">
+      <h2 id="h-caixa">Sobra dinheiro em caixa para pagar o que ficou para trás?</h2>
+      <p class="resposta" id="r-caixa"></p>
+      <p class="como-ler"><b>Como ler:</b> dinheiro em caixa no fim de cada ano, já descontadas as contas que passaram para o ano seguinte. Abaixo de zero, as contas pendentes eram maiores que o dinheiro guardado.</p>
+      <figure class="chart" id="c-caixa"></figure>
+      <details class="entenda"><summary>Entenda este número</summary>
+        <p>As contas que ficam para o ano seguinte se chamam <button type="button" class="termo" data-termo="rp">restos a pagar</button>.
+          O número soma todas as fontes de recurso: uma fonte com sobra pode esconder outra no vermelho.</p>
+      </details>
+    </section>
+  </div>
+
+  <!-- 2 -->
+  <div class="capitulo" id="cap-limites">
+    <p class="cap-num">2 · Folha e dívida: os limites da lei</p>
+
+    <section class="bloco" aria-labelledby="h-pessoal">
+      <h2 id="h-pessoal">Quanto da receita vai para salários</h2>
+      <p class="resposta" id="r-pessoal"></p>
+      <p class="como-ler"><b>Como ler:</b> a linha azul é o gasto com pessoal como parte da <button type="button" class="termo" data-termo="rcl">receita corrente líquida</button>. As linhas cinza são os limites da <button type="button" class="termo" data-termo="lrf">Lei de Responsabilidade Fiscal</button>: alerta (48,6%), prudencial (51,3%) e teto (54%).</p>
+      <figure class="chart" id="c-pessoal"></figure>
+    </section>
+
+    <section class="bloco" aria-labelledby="h-divida">
+      <h2 id="h-divida">Quanto a cidade deve</h2>
+      <p class="resposta" id="r-divida"></p>
+      <p class="como-ler"><b>Como ler:</b> a <button type="button" class="termo" data-termo="dcl">dívida consolidada líquida</button> comparada com a receita de um ano. O Senado limita municípios a 120%.</p>
+      <figure class="chart" id="c-divida"></figure>
+    </section>
+  </div>
+
+  <!-- 3 -->
+  <div class="capitulo" id="cap-minimos">
+    <p class="cap-num">3 · Saúde e educação</p>
+    <section class="bloco" aria-labelledby="h-minimos">
+      <h2 id="h-minimos">A cidade aplica o mínimo que a Constituição exige?</h2>
+      <p class="resposta" id="r-minimos"></p>
+      <p class="como-ler"><b>Como ler:</b> o município deve aplicar ao menos 25% da receita de impostos em educação e 15% em saúde. Cada linha precisa ficar acima da sua linha de mínimo.</p>
+      <figure class="chart" id="c-minimos"></figure>
+      <details class="entenda"><summary>Por que há duas linhas para a saúde?</summary>
+        <p>Usamos o cálculo do <button type="button" class="termo" data-termo="tce">Tribunal de Contas</button>, o mesmo que ele usa para julgar as contas.
+          A linha verde é do <button type="button" class="termo" data-termo="siops">SIOPS</button>, o sistema do Ministério da Saúde.
+          Os dois contam despesas de formas diferentes, e em alguns anos a distância é grande.</p>
+      </details>
+    </section>
+  </div>
+
+  <!-- 4 -->
+  <div class="capitulo" id="cap-dinheiro">
+    <p class="cap-num">4 · De onde vem e para onde vai o dinheiro</p>
+
+    <section class="bloco" aria-labelledby="h-rcl">
+      <h2 id="h-rcl">Quanto a Prefeitura arrecada por morador</h2>
+      <p class="resposta" id="r-rcl"></p>
+      <p class="como-ler"><b>Como ler:</b> a receita corrente líquida dividida pela população estimada de cada ano.</p>
+      <figure class="chart" id="c-rcl"></figure>
+    </section>
+
+    <section class="bloco" aria-labelledby="h-origem">
+      <h2 id="h-origem">De onde vem o dinheiro em <span data-ano-fechado></span></h2>
+      <p class="resposta" id="r-origem"></p>
+      <p class="como-ler"><b>Como ler:</b> a barra inteira é tudo o que entrou no ano. Cada cor é uma origem. A arrecadação própria (IPTU, ISS, ITBI, taxas) é a parte que o município controla.</p>
+      <figure class="chart" id="c-origem"></figure>
+    </section>
+
+    <section class="bloco" aria-labelledby="h-funcao">
+      <h2 id="h-funcao">Para onde vai o dinheiro em <span data-ano-fechado></span></h2>
+      <p class="resposta" id="r-funcao"></p>
+      <p class="como-ler"><b>Como ler:</b> despesa <button type="button" class="termo" data-termo="liquidado">liquidada</button> (serviço entregue ou bem recebido) por área de governo, valores da época.</p>
+      <figure class="chart" id="c-funcao"></figure>
+    </section>
+
+    <section class="bloco" aria-labelledby="h-fornecedores">
+      <h2 id="h-fornecedores">Quem mais recebeu da Prefeitura em <span data-ano-fornecedores></span></h2>
+      <p class="resposta" id="nota-fornecedores"></p>
+      <figure class="chart" id="c-fornecedores"></figure>
+      <details class="extra">
+        <summary>Pagamentos a órgãos públicos, encargos e dívida</summary>
+        <p class="como-ler">INSS, Receita Federal, precatórios no Tribunal de Justiça, parcelas de dívida e repasses a autarquias. São obrigações, não compras.</p>
+        <figure class="chart" id="c-publicos"></figure>
+      </details>
+    </section>
+  </div>
+
+  <!-- 5 -->
+  <div class="capitulo">
+    <p class="cap-num">5 · Comparação</p>
+    <section class="bloco" aria-labelledby="h-comparacao" id="sec-comparacao">
+      <h2 id="h-comparacao">Como Mogi Guaçu se sai perto de cidades parecidas</h2>
+      <p class="resposta" id="leitura-comparacao" aria-live="polite"></p>
+      <div class="filtros">
+        <div class="controles" role="group" aria-labelledby="lbl-grupo" id="ctl-grupo">
+          <span id="lbl-grupo">Comparar com</span>
+          <button type="button" data-grupo="regiao" aria-pressed="true">cidades da região</button>
+          <button type="button" data-grupo="porte" aria-pressed="false">cidades do mesmo porte</button>
+        </div>
+        <div class="controles" role="group" aria-label="Indicador" id="ctl-metrica"></div>
+      </div>
+      <figure class="chart" id="c-comparacao"></figure>
+      <details class="entenda"><summary>Quais cidades entram na comparação</summary>
+        <p id="nota-comparacao"></p>
+        <p>Dados de <span data-ano-comparacao></span>, o mesmo ano para todas as cidades, em valores da época.</p>
+      </details>
+    </section>
+  </div>
+
+  <!-- 6 -->
+  <div class="capitulo" id="cap-fiscalizacao">
+    <p class="cap-num">6 · Fiscalização</p>
+    <section class="bloco" aria-labelledby="h-pareceres">
+      <h2 id="h-pareceres">O que o Tribunal de Contas decidiu</h2>
+      <p class="resposta" id="r-pareceres"></p>
+      <p class="como-ler">Todo ano o <button type="button" class="termo" data-termo="tce">TCE-SP</button> dá um <button type="button" class="termo" data-termo="parecer">parecer prévio</button> sobre as contas. Quem julga em definitivo é a Câmara Municipal.
+        O arquivo público do Tribunal só vai até <span data-parecer-ultimo></span>.</p>
+      <ol class="pareceres" id="pareceres"></ol>
+    </section>
+  </div>
+
+  <section class="bloco glossario" id="glossario" aria-labelledby="h-glossario">
+    <h2 id="h-glossario">Glossário</h2>
+    <p class="como-ler">Os termos técnicos usados nesta página, em poucas palavras. Nos textos acima, toque em uma palavra sublinhada para ver a definição.</p>
+    <dl id="lista-glossario"></dl>
   </section>
 
-  <section aria-labelledby="h-metodo" class="metodo">
+  <section class="bloco metodo" aria-labelledby="h-metodo">
     <h2 id="h-metodo">De onde saem esses números</h2>
     <ul id="fontes"></ul>
+    <details class="entenda"><summary>Ressalvas e decisões de método</summary>
     <ul class="ressalvas">
-      <li><strong>Correção pela inflação:</strong> valores trazidos a preços médios de <span data-ano-fechado></span> pelo IPCA. Use o botão no topo para ver os valores da época.</li>
-      <li><strong>Ano corrente:</strong> <span data-ano-parcial></span> aparece só onde o indicador já é anual (pessoal e dívida usam os últimos 12 meses). Receita e despesa de um ano incompleto não são comparáveis, porque a despesa é empenhada no começo do ano e a receita entra mês a mês.</li>
-      <li><strong>Valores calculados por nós:</strong> em alguns anos o relatório traz o valor mas não o percentual, ou traz o caixa antes de descontar os restos a pagar. Nesses casos calculamos com os números do próprio relatório, e o ponto aparece marcado como "calculado" ao passar o mouse.</li>
-      <li><strong>Saúde e educação:</strong> de 2016 em diante, o percentual é o calculado pelo TCE-SP (despesa empenhada). Em 2015, que o Tribunal não publica, usamos o RREO do Siconfi. O SIOPS é mostrado ao lado só para conferência. O SIOPE (educação, do FNDE) está com a API fora do ar e a consulta pública exige captcha, por isso não foi usado.</li>
-      <li><strong>Comparação:</strong> todos os municípios no último ano fechado, em valores da época (o mesmo ano para todos, então não precisa corrigir pela inflação). Pessoal, dívida, caixa e receita vêm do Siconfi; resultado, ensino e saúde, do TCE-SP. Município que não entregou o relatório aparece como "sem dado".</li>
-      <li><strong>Caixa:</strong> é o total de todas as fontes de recurso. Uma fonte com sobra pode esconder outra no vermelho. O detalhe por fonte está no Anexo 5 do RGF.</li>
+      <li><strong>Correção pela inflação:</strong> valores trazidos a preços médios de <span data-ano-fechado></span> pelo <button type="button" class="termo" data-termo="ipca">IPCA</button>.</li>
+      <li><strong>Ano corrente:</strong> <span data-ano-parcial></span> aparece só onde o indicador já é anual (pessoal e dívida usam os últimos 12 meses), marcado com * e ponto vazado. Receita e despesa de um ano incompleto não são comparáveis.</li>
+      <li><strong>Valores calculados por nós:</strong> em alguns anos o relatório traz o valor mas não o percentual, ou traz o caixa antes de descontar os restos a pagar. Nesses casos calculamos com os números do próprio relatório, e o ponto aparece marcado como "calculado".</li>
+      <li><strong>Saúde e educação:</strong> de 2016 em diante, o percentual é o calculado pelo TCE-SP. Em 2015, que o Tribunal não publica, usamos o RREO do Siconfi. O SIOPE (educação, do FNDE) está com a API fora do ar e a consulta pública exige captcha, por isso não foi usado.</li>
+      <li><strong>Comparação:</strong> todos os municípios no último ano fechado, em valores da época. Pessoal, dívida, caixa e receita vêm do Siconfi; resultado, ensino e saúde, do TCE-SP. Município que não entregou o relatório aparece como "sem dado".</li>
       <li><strong>Fornecedores:</strong> soma dos pagamentos registrados no AUDESP, sem a própria Prefeitura (folha e transferências internas). A separação entre "terceiros" e "órgãos públicos" é feita pelo nome do favorecido e pode errar.</li>
     </ul>
-    <p class="nota">Dados atualizados em <span data-gerado></span>. Código e dados: aberto.</p>
+    </details>
   </section>
 </main>
-<div class="tooltip" id="tooltip" role="status" hidden></div>
+
+<footer class="rodape">
+  <p>Dados atualizados em <span data-gerado></span>. Projeto independente, sem vínculo com a Prefeitura de Mogi Guaçu. Código e dados abertos.</p>
+</footer>
+
+<div class="tooltip" id="tooltip" hidden></div>
+<div class="definicao" id="definicao" popover role="dialog" aria-labelledby="def-titulo"></div>
+<p class="sr-only" id="anuncio" aria-live="polite"></p>
 </div>
 <script src="data/indicadores.js"></script>
 <script src="app.js"></script>

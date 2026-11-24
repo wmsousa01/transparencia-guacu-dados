@@ -64,24 +64,70 @@
     return out;
   };
 
+  // Ano no eixo: em telas estreitas vira '15, '16… para não encavalar.
+  const rotuloAno = (a, largura) => `${largura < 40 ? `’${String(a.ano).slice(2)}` : a.ano}${a.parcial ? "*" : ""}`;
+
   // ---------- tooltip ----------
   const tip = document.getElementById("tooltip");
-  const showTip = (ev, html) => {
+  const showTipAt = (cx, cy, html) => {
     tip.innerHTML = html;
     tip.hidden = false;
     const r = tip.getBoundingClientRect();
-    let x = ev.clientX + 14;
-    let y = ev.clientY + 14;
-    if (x + r.width > innerWidth - 8) x = ev.clientX - r.width - 14;
-    if (y + r.height > innerHeight - 8) y = ev.clientY - r.height - 14;
+    let x = cx + 14;
+    let y = cy + 14;
+    if (x + r.width > innerWidth - 8) x = Math.max(8, cx - r.width - 14);
+    if (y + r.height > innerHeight - 8) y = cy - r.height - 14;
     tip.style.left = `${x}px`;
     tip.style.top = `${y}px`;
   };
+  const showTip = (ev, html) => showTipAt(ev.clientX, ev.clientY, html);
   const hideTip = () => { tip.hidden = true; };
+  // Cada alvo serve ao mouse, ao toque (pointerdown) e ao teclado (ver navegavel()).
   const bindTip = (node, html, onEnter, onLeave) => {
-    node.addEventListener("pointermove", (e) => { showTip(e, typeof html === "function" ? html() : html); onEnter?.(); });
+    const h = typeof html === "function" ? html : () => html;
+    const on = (e) => { showTip(e, h()); onEnter?.(); };
+    node.addEventListener("pointermove", on);
+    node.addEventListener("pointerdown", on);
     node.addEventListener("pointerleave", () => { hideTip(); onLeave?.(); });
+    return { hit: node, html: h, enter: onEnter, leave: onLeave };
   };
+  addEventListener("scroll", hideTip, { passive: true });
+
+  // Teclado: o gráfico recebe foco; setas percorrem os anos/itens; o valor é anunciado ao leitor de tela.
+  const anuncio = document.getElementById("anuncio");
+  const semTags = (h) => h.replace(/<br>|<\/strong>/g, ". ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  function navegavel(fig, svg, alvos) {
+    if (!alvos.length) return;
+    const titulo = fig.closest("section")?.querySelector("h2")?.textContent.trim() || "Gráfico";
+    svg.setAttribute("tabindex", "0");
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", `${titulo}. Gráfico com ${alvos.length} itens: use as setas para ouvir cada valor, ou abra a tabela abaixo.`);
+    let i = -1;
+    const ir = (k) => {
+      if (i >= 0) { alvos[i].leave?.(); alvos[i].hit.classList.remove("foco"); }
+      i = Math.max(0, Math.min(alvos.length - 1, k));
+      const a = alvos[i];
+      a.enter?.();
+      a.hit.classList.add("foco");
+      const r = a.hit.getBoundingClientRect();
+      showTipAt(r.left + r.width / 2, r.top + Math.min(r.height / 2, 40), a.html());
+      anuncio.textContent = semTags(a.html());
+    };
+    svg.addEventListener("keydown", (e) => {
+      const passo = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+      if (passo) ir(i < 0 ? (passo > 0 ? 0 : alvos.length - 1) : i + passo);
+      else if (e.key === "Home") ir(0);
+      else if (e.key === "End") ir(alvos.length - 1);
+      else if (e.key === "Escape") hideTip();
+      else return;
+      e.preventDefault();
+    });
+    svg.addEventListener("blur", () => {
+      hideTip();
+      if (i >= 0) { alvos[i].leave?.(); alvos[i].hit.classList.remove("foco"); }
+      i = -1;
+    });
+  }
 
   // ---------- tabela (acessibilidade) ----------
   const tabela = (fig, head, rows) => {
@@ -103,7 +149,7 @@
   const cssVar = (n) => getComputedStyle(document.querySelector(".viz-root")).getPropertyValue(n).trim();
 
   // ---------- coluna com sinal (déficit/superávit) ----------
-  function colunasSinal(fig, { anos, valor, nota, tipExtra }) {
+  function colunasSinal(fig, { anos, valor, nota, tipExtra, sinalPos = "sobra", sinalNeg = "falta" }) {
     fig.innerHTML = "";
     const W = Math.max(fig.clientWidth - 32, 300);
     const H = 260;
@@ -124,22 +170,26 @@
     const neg = cssVar("--neg");
     const iMin = vals.indexOf(Math.min(...nums));
     const iMax = vals.indexOf(Math.max(...nums));
+    const alvos = [];
     anos.forEach((a, i) => {
       const cx = m.l + band * i + band / 2;
-      txt(svg, cx, H - 8, a.ano, "tick");
+      txt(svg, cx, H - 8, rotuloAno(a, band), "tick");
       const v = vals[i];
+      const hit = el("rect", { x: m.l + band * i, y: m.t, width: band, height: H - m.t - m.b, class: "hit" }, svg);
       if (v == null) {
         txt(svg, cx, y(0) - 6, "s/ dado", "tick");
+        alvos.push(bindTip(hit, () => `<strong>${a.ano}</strong>sem dado${tipExtra ? `<br><span class="muted">${tipExtra(a)}</span>` : ""}`));
         return;
       }
       el("path", { d: barPath(cx - bw / 2, y(0), y(v), bw), fill: v >= 0 ? pos : neg }, svg);
       if (i === iMin || i === iMax || i === anos.length - 1) {
         txt(svg, cx, v >= 0 ? y(v) - 6 : y(v) + 14, mi(v).replace("R$ ", ""), "val");
       }
-      const hit = el("rect", { x: m.l + band * i, y: m.t, width: band, height: H - m.t - m.b, class: "hit" }, svg);
-      bindTip(hit, () => `<strong>${a.ano}</strong>${mi(v)}${tipExtra ? `<br><span class="muted">${tipExtra(a)}</span>` : ""}`);
+      const leg = v >= 0 ? sinalPos : sinalNeg;
+      alvos.push(bindTip(hit, () => `<strong>${a.ano}: ${leg} de ${mi(Math.abs(v))}</strong>${tipExtra ? `<span class="muted">${tipExtra(a)}</span>` : ""}`));
     });
     if (nota) txt(svg, m.l, 12, nota, "lbl", "start");
+    navegavel(fig, svg, alvos);
   }
 
   // ---------- linhas (% com limites) ----------
@@ -170,7 +220,7 @@
       txt(svg, xEnd, limitesAbaixo ? y(l.y) + 14 : y(l.y) - 4, l.label, "lbl", "end");
       prev = { x: xEnd, y: y(l.y), w: l.label.length * 6.6 };
     });
-    anos.forEach((a, i) => txt(svg, x(i), H - 8, a.parcial ? `${a.ano}*` : a.ano, "tick"));
+    anos.forEach((a, i) => txt(svg, x(i), H - 8, rotuloAno(a, step), "tick"));
 
     const surface = cssVar("--surface-1");
     const pontos = [];
@@ -198,20 +248,22 @@
     });
     // crosshair por ano
     const cross = el("line", { y1: m.t, y2: H - m.b, class: "base", opacity: 0 }, svg);
+    const alvos = [];
     anos.forEach((a, i) => {
       const hit = el("rect", { x: x(i) - step / 2, y: m.t, width: step, height: H - m.t - m.b, class: "hit" }, svg);
-      bindTip(hit, () => {
+      alvos.push(bindTip(hit, () => {
         const linhasTip = series.map((s) => {
           const v = s.valor(a);
           const calc = (s.calc && a.calculados?.includes(s.calc) ? ' <span class="muted">(calculado)</span>' : "")
             + (s.fonte && a.fonte_minimos?.[s.fonte] === "RREO" ? ' <span class="muted">(RREO)</span>' : "");
           return `${series.length > 1 ? `${s.name}: ` : ""}${v == null ? "sem dado" : fmt(v)}${calc}`;
         }).join("<br>");
-        const p = a.parcial ? `<br><span class="muted">12 meses até o ${a.periodo_rgf}</span>` : "";
+        const p = a.parcial ? `<br><span class="muted">Ano em curso: 12 meses até o ${a.periodo_rgf}</span>` : "";
         return `<strong>${a.ano}</strong>${linhasTip}${p}`;
       }, () => { cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i)); cross.setAttribute("opacity", 1); },
-      () => cross.setAttribute("opacity", 0));
+      () => cross.setAttribute("opacity", 0)));
     });
+    navegavel(fig, svg, alvos);
   }
 
   // ---------- barras horizontais ----------
@@ -227,6 +279,7 @@
     const x = (v) => labelW + (v / max) * (W - labelW - valW);
     const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img" }, fig);
     el("line", { x1: labelW, x2: labelW, y1: 0, y2: H, class: "base" }, svg);
+    const alvos = [];
     itens.forEach((it, k) => {
       const y0 = k * rowH + 3;
       const nome = it.nome.length > maxChars ? `${it.nome.slice(0, maxChars - 1).trim()}…` : it.nome;
@@ -234,8 +287,9 @@
       el("path", { d: hbarPath(labelW, y0 + 2, x(it.valor), 20), fill: color }, svg);
       txt(svg, x(it.valor) + 6, y0 + 16, fmt(it.valor), "val", "start");
       const hit = el("rect", { x: 0, y: y0 - 3, width: W, height: rowH, class: "hit" }, svg);
-      bindTip(hit, `<strong>${it.nome}</strong>${fmt(it.valor)}${it.extra ? `<br><span class="muted">${it.extra}</span>` : ""}`);
+      alvos.push(bindTip(hit, `<strong>${it.nome}</strong>${fmt(it.valor)}${it.extra ? `<br><span class="muted">${it.extra}</span>` : ""}`));
     });
+    navegavel(fig, svg, alvos);
   }
 
   // ---------- barra segmentada (composição) ----------
@@ -249,15 +303,17 @@
     const usable = W - gap * (partes.length - 1);
     const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": partes.map((p) => `${p.nome} ${pct((100 * p.valor) / total)}`).join(", ") }, fig);
     let x0 = 0;
+    const alvos = [];
     partes.forEach((p) => {
       const w = (p.valor / total) * usable;
       el("rect", { x: x0, y: 0, width: w, height: H, rx: 4, fill: p.color }, svg);
       const share = `${nf0.format((100 * p.valor) / total)}%`;
       if (w > 44) txt(svg, x0 + 8, 18, share, "val", "start", { fill: p.ink || "#ffffff" });
       const hit = el("rect", { x: x0, y: 0, width: w, height: H, class: "hit" }, svg);
-      bindTip(hit, `<strong>${p.nome}</strong>${mi(p.valor)} · ${pct((100 * p.valor) / total)}${p.det ? `<br><span class="muted">${p.det}</span>` : ""}`);
+      alvos.push(bindTip(hit, `<strong>${p.nome}</strong>${mi(p.valor)} · ${pct((100 * p.valor) / total)}${p.det ? `<br><span class="muted">${p.det}</span>` : ""}`));
       x0 += w + gap;
     });
+    navegavel(fig, svg, alvos);
   }
 
   // ---------- ranking (barras horizontais com sinal, um município em destaque) ----------
@@ -286,6 +342,7 @@
     });
     el("line", { x1: x(0), x2: x(0), y1: top - 4, y2: H, class: "base" }, svg);
 
+    const alvos = [];
     [...com, ...sem].forEach((it, k) => {
       const y0 = top + k * rowH;
       txt(svg, labelW - 8, y0 + 16, it.nome, it.alvo ? "val" : "lbl", "end");
@@ -299,8 +356,9 @@
         txt(svg, v >= 0 ? x(v) + 6 : x(v) - 6, y0 + 16, fmt(v), it.alvo ? "val" : "tick", v >= 0 ? "start" : "end");
       }
       const hit = el("rect", { x: 0, y: y0, width: W, height: rowH, class: "hit" }, svg);
-      bindTip(hit, `<strong>${it.nome}</strong>${it.valor == null ? "sem dado" : fmt(it.valor)}${it.extra ? `<br><span class="muted">${it.extra}</span>` : ""}`);
+      alvos.push(bindTip(hit, `<strong>${it.nome}</strong>${it.valor == null ? "sem dado" : fmt(it.valor)}${it.extra ? `<br><span class="muted">${it.extra}</span>` : ""}`));
     });
+    navegavel(fig, svg, alvos);
   }
 
   const METRICAS = [
@@ -350,9 +408,11 @@
     const el2 = document.getElementById("leitura-comparacao");
     if (!alvo || alvo.valor == null) { el2.textContent = ""; return; }
     const rel = med == null ? "" : alvo.valor > med ? "acima" : alvo.valor < med ? "abaixo" : "igual";
-    el2.innerHTML = `<strong>${m.nome}</strong> (${m.desc}): Mogi Guaçu tem <strong>${m.fmt(alvo.valor)}</strong>, ` +
-      `${rel === "igual" ? "igual à" : `${rel} da`} mediana das ${nomeGrupo} (${m.fmt(med)})` +
-      (m.melhor ? `, ${pos}º lugar entre ${comDado.length}, do ${m.melhor === "menor" ? "menor para o maior" : "maior para o menor"}.` : ".");
+    const juizo = !m.melhor || rel === "igual" ? "" : (rel === "acima") === (m.melhor === "maior") ? " Neste indicador, isso é bom." : " Neste indicador, isso é ruim.";
+    el2.innerHTML = `<strong>${m.nome}:</strong> Mogi Guaçu tem <strong>${m.fmt(alvo.valor)}</strong>, ` +
+      `${rel === "igual" ? "igual ao" : `${rel} do`} valor típico das ${nomeGrupo} (${m.fmt(med)}).` +
+      (m.melhor ? ` Fica em <strong>${pos}º lugar entre ${comDado.length}</strong>.${juizo}` : "") +
+      `<br><span class="como-ler">${m.desc[0].toUpperCase()}${m.desc.slice(1)}.</span>`;
   }
 
   function controlesComparacao() {
@@ -385,6 +445,151 @@
         ${p.voto ? `<a href="${p.voto}" rel="noopener">Voto (PDF)</a>` : ""}</li>`;
     }).join("");
     document.querySelectorAll("[data-parecer-ultimo]").forEach((n) => { n.textContent = P.length ? P[P.length - 1].ano : "—"; });
+    const fav = P.filter((p) => p.parecer.toLowerCase().startsWith("favor"));
+    const desf = P.filter((p) => !p.parecer.toLowerCase().startsWith("favor"));
+    if (P.length) {
+      document.getElementById("r-pareceres").innerHTML =
+        `Das <strong>${P.length} contas anuais</strong> analisadas entre ${P[0].ano} e ${P[P.length - 1].ano}, ` +
+        `<strong>${fav.length} receberam parecer favorável</strong> e ${desf.length} desfavorável` +
+        (desf.length ? ` (${desf.map((p) => p.ano).join(", ")}).` : ".");
+    }
+  }
+
+  // ---------- respostas curtas: a frase que o cidadão leva para casa ----------
+  const plural = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
+  const setR = (id, html) => { const n = document.getElementById(id); if (n) n.innerHTML = html; };
+  function respostas() {
+    const a = ult;
+    const ano = a.ano;
+    const ultimos5 = fechados.slice(-5);
+
+    const res = a.resultado_orcamentario;
+    const nDef = ultimos5.filter((x) => x.resultado_orcamentario < 0).length;
+    setR("r-resultado", (res >= 0
+      ? `<strong>Sim.</strong> Em ${ano} a Prefeitura arrecadou <strong>${mi(money(a, res))} a mais</strong> do que se comprometeu a gastar.`
+      : `<strong>Não.</strong> Em ${ano} a Prefeitura se comprometeu a gastar <strong>${mi(money(a, -res))} a mais</strong> do que arrecadou.`) +
+      ` Nos últimos 5 anos, ${nDef ? `foram <strong>${plural(nDef, "ano", "anos")} de déficit</strong>` : "não houve déficit"}.`);
+
+    const cx = a.caixa_liquida_apos_rp;
+    if (cx != null) {
+      const ultPos = [...fechados].reverse().find((x) => x.caixa_liquida_apos_rp > 0);
+      setR("r-caixa", cx >= 0
+        ? `<strong>Sim.</strong> No fim de ${ano}, depois de reservar as contas pendentes, sobraram <strong>${mi(money(a, cx))}</strong>.`
+        : `<strong>Não.</strong> No fim de ${ano}, as contas deixadas para o ano seguinte eram <strong>${mi(money(a, -cx))} maiores</strong> que o dinheiro em caixa.` +
+          (ultPos ? ` A última vez que sobrou dinheiro foi em ${ultPos.ano}.` : ""));
+    }
+
+    const p = a.pessoal_pct_rcl;
+    const p0 = fechados[0];
+    const pTxt = p >= 54 ? "<strong>acima do teto</strong> de 54% da lei" : p >= 51.3 ? "acima do limite prudencial (51,3%)" : p >= 48.6 ? "acima do alerta da lei (48,6%)" : "<strong>abaixo do alerta</strong> da lei (48,6%)";
+    setR("r-pessoal", `De cada R$ 100 da receita, <strong>R$ ${nf0.format(p)} vão para salários e encargos</strong> dos servidores, ${pTxt}. Em ${p0.ano} eram R$ ${nf0.format(p0.pessoal_pct_rcl)}.`);
+
+    const dcl = a.dcl_pct_rcl;
+    setR("r-divida", `A dívida equivale a <strong>${pct(dcl)} da receita de um ano</strong>. ${dcl < 108 ? "O limite é 120%, então há <strong>folga grande</strong>." : dcl < 120 ? "O limite é 120%: está <strong>perto do limite</strong>." : "Passou do limite de 120%."}` +
+      (fechados.length > 3 ? ` Em ${fechados[fechados.length - 4].ano} era ${pct(fechados[fechados.length - 4].dcl_pct_rcl)}.` : ""));
+
+    const comMin = fechados.filter((x) => x.educacao_pct != null && x.saude_pct != null);
+    const falhas = comMin.filter((x) => x.educacao_pct < 25 || x.saude_pct < 15);
+    setR("r-minimos", `<strong>${falhas.length ? "Nem sempre." : "Sim."}</strong> Em ${ano}: <strong>${pct(a.educacao_pct)} em educação</strong> (mínimo 25%) e <strong>${pct(a.saude_pct)} em saúde</strong> (mínimo 15%). ` +
+      (falhas.length ? `Ficou abaixo do mínimo em ${falhas.map((x) => x.ano).join(", ")}.` : `Os dois mínimos foram cumpridos em todos os anos desde ${comMin[0]?.ano}.`));
+
+    const pc = (x) => (x.rcl && x.populacao ? (x.rcl * x.ipca_fator) / x.populacao : null);
+    const v0 = pc(p0);
+    const v1 = pc(a);
+    if (v0 && v1) {
+      const d = (100 * (v1 - v0)) / v0;
+      setR("r-rcl", `Em ${ano}, a receita foi de <strong>${reais(money(a, a.rcl / a.populacao))} por morador</strong>. ` +
+        `Descontada a inflação, são <strong>${pct(Math.abs(d))} ${d >= 0 ? "a mais" : "a menos"}</strong> que em ${p0.ano}.`);
+    }
+
+    const c = a.receita_composicao;
+    if (c) {
+      const propria = ["impostos_taxas", "contribuicoes", "servicos", "patrimonial", "outras_correntes"].reduce((s, k) => s + (c[k] || 0), 0);
+      const total = propria + ["transf_estado", "transf_uniao", "transf_outras", "capital"].reduce((s, k) => s + (c[k] || 0), 0);
+      setR("r-origem", `De cada R$ 100 que entraram, <strong>R$ ${nf0.format((100 * propria) / total)} foram arrecadados pela própria cidade</strong>. ` +
+        `O resto veio de repasses: R$ ${nf0.format((100 * (c.transf_estado || 0)) / total)} do Estado, R$ ${nf0.format((100 * (c.transf_uniao || 0)) / total)} da União e o restante de outras fontes.`);
+    }
+
+    const fun = Object.entries(a.despesa_funcao || {});
+    if (fun.length >= 2) {
+      const tot = fun.reduce((s, [, v]) => s + v, 0);
+      const [[n1, v1f], [n2, v2f]] = fun;
+      setR("r-funcao", `<strong>${n1} e ${n2.toLowerCase()}</strong> levam <strong>R$ ${nf0.format((100 * (v1f + v2f)) / tot)} de cada R$ 100</strong> gastos. ` +
+        `${n1} sozinha fica com R$ ${nf0.format((100 * v1f) / tot)}.`);
+    }
+  }
+
+  // ---------- glossário ----------
+  const GLOSSARIO = {
+    rcl: ["Receita Corrente Líquida (RCL)", "O dinheiro que a Prefeitura recebe no ano para o dia a dia (impostos, repasses, taxas), tirando o que é só de passagem. É a régua que a lei usa para medir gasto com pessoal e dívida."],
+    empenho: ["Empenho (despesa empenhada)", "O primeiro passo de um gasto: a Prefeitura reserva o dinheiro e assume o compromisso de pagar. Ainda não pagou."],
+    liquidado: ["Despesa liquidada", "O segundo passo: o serviço foi prestado ou o bem foi entregue, e a Prefeitura conferiu. Falta só pagar."],
+    rp: ["Restos a pagar", "Contas assumidas num ano que só vão ser pagas no ano seguinte. Funcionam como uma fatura que vira o mês."],
+    superavit: ["Superávit", "Quando entra mais dinheiro do que a Prefeitura se compromete a gastar no ano. Sobra."],
+    deficit: ["Déficit", "Quando a Prefeitura se compromete a gastar mais do que arrecada no ano. Falta, e a diferença sai de reservas ou vira conta para depois."],
+    dcl: ["Dívida consolidada líquida", "Tudo o que a cidade deve a prazo (empréstimos, parcelamentos, precatórios), menos o dinheiro que ela já tem guardado para pagar."],
+    lrf: ["Lei de Responsabilidade Fiscal (LRF)", "Lei federal de 2000 que fixa limites para gasto com pessoal e dívida e obriga prefeituras a publicar relatórios das contas."],
+    tce: ["TCE-SP", "Tribunal de Contas do Estado de São Paulo. Fiscaliza as contas das prefeituras paulistas e dá um parecer todo ano."],
+    parecer: ["Parecer prévio", "A opinião técnica do Tribunal de Contas sobre as contas do ano: favorável ou desfavorável. A decisão final é dos vereadores, na Câmara."],
+    siops: ["SIOPS", "Sistema do Ministério da Saúde onde os municípios declaram quanto aplicaram em saúde."],
+    ipca: ["IPCA", "O índice oficial de inflação do Brasil, medido pelo IBGE. Usamos para corrigir valores antigos para o dinheiro de hoje."],
+  };
+  function glossario() {
+    document.getElementById("lista-glossario").innerHTML = Object.entries(GLOSSARIO)
+      .map(([k, [t, d]]) => `<div id="g-${k}"><dt>${t}</dt><dd>${d}</dd></div>`).join("");
+    const pop = document.getElementById("definicao");
+    const temPopover = typeof pop.showPopover === "function";
+    let aberto = null;
+    document.querySelectorAll(".termo").forEach((b) => {
+      b.setAttribute("aria-haspopup", "dialog");
+      b.setAttribute("aria-expanded", "false");
+      b.addEventListener("click", () => {
+        const k = b.dataset.termo;
+        if (!temPopover) { location.hash = `g-${k}`; return; }
+        if (aberto === b) { pop.hidePopover(); return; }
+        const [t, d] = GLOSSARIO[k];
+        pop.innerHTML = `<h3 id="def-titulo">${t}</h3><p>${d}</p><a href="#g-${k}">Ver no glossário</a>`;
+        pop.showPopover();
+        const r = b.getBoundingClientRect();
+        const pr = pop.getBoundingClientRect();
+        const x = Math.max(12, Math.min(r.left, innerWidth - pr.width - 12));
+        const y = r.bottom + 8 + pr.height > innerHeight ? r.top - pr.height - 8 : r.bottom + 8;
+        pop.style.left = `${x}px`;
+        pop.style.top = `${y}px`;
+        b.setAttribute("aria-expanded", "true");
+        aberto = b;
+      });
+    });
+    if (temPopover) {
+      pop.addEventListener("toggle", (e) => {
+        if (e.newState === "closed" && aberto) { aberto.setAttribute("aria-expanded", "false"); aberto = null; }
+      });
+      pop.addEventListener("click", (e) => { if (e.target.tagName === "A") pop.hidePopover(); });
+      addEventListener("scroll", () => { if (aberto) pop.hidePopover(); }, { passive: true });
+    }
+  }
+
+  // ---------- índice: marca a seção em leitura ----------
+  function indice() {
+    const links = [...document.querySelectorAll(".indice a")];
+    const alvos = links.map((l) => document.querySelector(l.getAttribute("href"))).filter(Boolean);
+    if (!("IntersectionObserver" in window)) return;
+    const visiveis = new Set();
+    const io = new IntersectionObserver((ents) => {
+      ents.forEach((e) => (e.isIntersecting ? visiveis.add(e.target) : visiveis.delete(e.target)));
+      const atual = alvos.filter((t) => visiveis.has(t)).pop();
+      links.forEach((l) => {
+        const on = atual && l.getAttribute("href") === `#${atual.id}`;
+        if (on) {
+          l.setAttribute("aria-current", "true");
+          const ul = l.closest("ul");
+          const left = l.offsetLeft - ul.offsetLeft;
+          if (left < ul.scrollLeft || left + l.offsetWidth > ul.scrollLeft + ul.clientWidth) ul.scrollLeft = left - 12;
+        }
+        else l.removeAttribute("aria-current");
+      });
+    }, { rootMargin: "-80px 0px -55% 0px" });
+    alvos.forEach((t) => io.observe(t));
   }
 
   // ---------- status ----------
@@ -418,26 +623,30 @@
     const pessoalVar = fechados.find((x) => x.ano === a.ano - 5);
     box.innerHTML = `
       <article class="tile">${status(rNivel, res >= 0 ? "Superávit" : "Déficit")}
-        <p class="label">Resultado do orçamento</p>
+        <p class="label">Receita menos despesa</p>
         <p class="value">${mi(money(a, res))}</p>
-        <p class="ctx">${pct(Math.abs(resPct))} da receita. Arrecadou ${mi(money(a, a.receita_realizada))} e empenhou ${mi(money(a, a.despesa_empenhada))}.</p>
+        <p class="ctx">${res >= 0 ? "Sobrou" : "Faltou"} o equivalente a ${pct(Math.abs(resPct))} da receita. Entraram ${mi(money(a, a.receita_realizada))} e foram comprometidos ${mi(money(a, a.despesa_empenhada))}.</p>
+        <a class="mais" href="#h-resultado">Ver a evolução →</a>
       </article>
-      ${cNivel ? `<article class="tile">${status(cNivel, cx >= 0 ? "Caixa cobre as contas" : "Caixa não cobre as contas")}
-        <p class="label">Caixa após restos a pagar</p>
+      ${cNivel ? `<article class="tile">${status(cNivel, cx >= 0 ? "Caixa cobre as contas" : "Caixa no vermelho")}
+        <p class="label">Dinheiro em caixa</p>
         <p class="value">${mi(money(a, cx))}</p>
-        <p class="ctx">Saldo no fim do ano depois de reservar o que ficou para pagar no ano seguinte.</p>
+        <p class="ctx">${cx >= 0 ? "Sobra" : "Falta"} no fim do ano depois de reservar as contas que ficaram para o ano seguinte.</p>
+        <a class="mais" href="#h-caixa">Ver a evolução →</a>
       </article>` : ""}
       <article class="tile">${status(pNivel, pTxt)}
-        <p class="label">Gasto com pessoal</p>
-        <p class="value">${pct(a.pessoal_pct_rcl)} <span style="font-size:16px;font-weight:400;color:var(--text-secondary)">da receita</span></p>
+        <p class="label">Salários e encargos</p>
+        <p class="value">${pct(a.pessoal_pct_rcl)} <small>da receita</small></p>
         ${meter(a.pessoal_pct_rcl, 60, [48.6, 51.3, 54], pNivel)}
-        <p class="ctx">Teto da LRF: 54%.${pessoalVar ? ` Em ${pessoalVar.ano} era ${pct(pessoalVar.pessoal_pct_rcl)}.` : ""}</p>
+        <p class="ctx">Teto da lei: 54%.${pessoalVar ? ` Em ${pessoalVar.ano} era ${pct(pessoalVar.pessoal_pct_rcl)}.` : ""}</p>
+        <a class="mais" href="#h-pessoal">Ver a evolução →</a>
       </article>
       <article class="tile">${status(dNivel, dNivel === "good" ? "Bem abaixo do limite" : dNivel === "warning" ? "Perto do limite" : "Acima do limite")}
-        <p class="label">Dívida consolidada líquida</p>
-        <p class="value">${pct(a.dcl_pct_rcl)} <span style="font-size:16px;font-weight:400;color:var(--text-secondary)">da receita</span></p>
+        <p class="label">Dívida</p>
+        <p class="value">${pct(a.dcl_pct_rcl)} <small>da receita</small></p>
         ${meter(a.dcl_pct_rcl, 130, [120], dNivel)}
         <p class="ctx">${mi(money(a, a.dcl))}. Limite do Senado: 120%.</p>
+        <a class="mais" href="#h-divida">Ver a evolução →</a>
       </article>`;
   }
 
@@ -450,7 +659,8 @@
       anos: fechados,
       valor: (a) => money(a, a.resultado_orcamentario),
       tipExtra: (a) => `Receita ${mi(money(a, a.receita_realizada))} · despesa ${mi(money(a, a.despesa_empenhada))}`,
-      nota: `Resultado orçamentário${sufixoModo()}`,
+      nota: `Receita menos despesa${sufixoModo()}`,
+      sinalPos: "superávit", sinalNeg: "déficit",
     });
     tabela(fRes, ["Ano", "Receita", "Despesa empenhada", "Resultado"],
       fechados.map((a) => [a.ano, mi(money(a, a.receita_realizada)), mi(money(a, a.despesa_empenhada)), mi(money(a, a.resultado_orcamentario))]));
@@ -460,7 +670,7 @@
       anos: fechados,
       valor: (a) => money(a, a.caixa_liquida_apos_rp),
       tipExtra: (a) => (a.calculados.includes("caixa_liquida_apos_rp") ? "Calculado: o relatório traz o saldo antes dos restos a pagar" : (a.caixa_liquida_apos_rp == null ? "O relatório deste ano não traz o saldo" : "")),
-      nota: `Caixa líquida após restos a pagar${sufixoModo()}`,
+      nota: `Caixa após as contas pendentes${sufixoModo()}`,
     });
     tabela(fCx, ["Ano", "Caixa após restos a pagar"], fechados.map((a) => [a.ano, mi(money(a, a.caixa_liquida_apos_rp))]));
 
@@ -544,6 +754,7 @@
     }
     renderComparacao();
     renderPareceres();
+    respostas();
   }
 
   function textos() {
@@ -565,6 +776,8 @@
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
 
   textos();
+  glossario();
+  indice();
   controlesComparacao();
   render();
   // Link direto para uma seção (#h-comparacao): rola só depois que os gráficos têm altura.
