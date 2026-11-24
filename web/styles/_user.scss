@@ -1,0 +1,231 @@
+// Estilos do Transparência Guaçu por cima do tema Dash UI.
+
+$serie-1: #2a78d6;
+$neg: #e34948;
+$neutro: #c3c2b7;
+$mudo: #637381;
+$hl: rgba(26, 79, 139, 0.08);
+$sombra: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .08);
+
+body { font-feature-settings: "cv11", "ss01"; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+:focus-visible { outline: 3px solid $serie-1; outline-offset: 2px; }
+main:focus { outline: none; }
+a { text-underline-offset: 2px; }
+
+.pular {
+  position: fixed; left: 12px; top: -60px; z-index: 2000; background: #fff; color: $gray-900;
+  padding: 10px 16px; border-radius: 8px; font-weight: 600; box-shadow: $sombra;
+  &:focus { top: 12px; }
+}
+
+// ---------- Menu lateral ----------
+.navbar-vertical {
+  background-color: $dark-primary;
+  border-right: 0;
+  z-index: 1040;
+  .marca {
+    display: flex !important; align-items: center; gap: 10px; color: #fff; font-size: 1.1rem; text-decoration: none;
+    padding: 1.25rem 1.5rem 1.25rem;
+    b { color: #7fd1ae; }
+    svg { width: 34px; height: 34px; flex: none; }
+  }
+  .navbar-heading { color: rgba(255, 255, 255, .55); }
+  .navbar-nav .nav-item .nav-link {
+    color: rgba(255, 255, 255, .78); border-left: 3px solid transparent; padding-left: calc(1.5rem - 3px);
+    &:hover { color: #fff; background: rgba(255, 255, 255, .06); }
+    &.active { color: #fff; background: rgba(255, 255, 255, .1); border-left-color: #7fd1ae; font-weight: 600; }
+  }
+  .nav-icon { opacity: .85; }
+  .selo-independente { color: rgba(255, 255, 255, .6); font-size: .8rem; padding: 1.5rem; margin: 0; line-height: 1.5; }
+}
+// Celular: o menu abre por cima do conteúdo, com véu escuro atrás.
+@media (max-width: 767.98px) {
+  #db-wrapper.menu-aberto .navbar-vertical { margin-left: 0; box-shadow: 0 0 40px rgba(0, 0, 0, .3); }
+  .veu { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); border: 0; z-index: 1030; }
+}
+@media (min-width: 768px) { .veu { display: none; } }
+
+.header { position: sticky; top: 0; z-index: 1020; }
+.barra-topo {
+  background: rgba(255, 255, 255, .94); backdrop-filter: blur(8px); border-bottom: 1px solid $gray-300;
+  display: flex; justify-content: space-between; gap: 12px; padding: .7rem 1.5rem !important;
+}
+.btn-icon { width: 40px; height: 40px; display: inline-grid; place-items: center; padding: 0; }
+
+// ---------- Abertura (manchete) ----------
+.abertura {
+  padding: 3rem 0 9rem;
+  background-image: radial-gradient(circle at 85% 0%, rgba(127, 209, 174, .25), transparent 45%), linear-gradient(135deg, $primary, $dark-primary);
+  color: #fff;
+}
+.chapeu {
+  display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; margin-bottom: 1rem;
+  font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #7fd1ae;
+  .atualizado { text-transform: none; letter-spacing: 0; font-weight: 500; color: rgba(255, 255, 255, .85); background: rgba(255, 255, 255, .12); padding: 2px 10px; border-radius: 999px; }
+}
+.manchete { color: #fff; font-size: clamp(1.9rem, 4.2vw, 3.1rem); font-weight: 800; line-height: 1.12; letter-spacing: -.02em; max-width: 22ch; margin-bottom: 1rem; text-wrap: balance; }
+.linha-fina { color: rgba(255, 255, 255, .88); font-size: clamp(1.05rem, 1.8vw, 1.3rem); max-width: 60ch; margin: 0; }
+.sobe { margin-top: -6.5rem; padding-bottom: 2rem; }
+.dica-modo { color: $mudo; font-size: .875rem; margin: 1rem 0 1.75rem; }
+
+// ---------- Cartões do resumo ----------
+.cartao-stat {
+  border: 0; box-shadow: 0 6px 24px rgba(16, 24, 40, .1); transition: transform .2s, box-shadow .2s;
+  &:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(16, 24, 40, .14); }
+  .selo { font-size: .78rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; padding: .35em .7em; }
+  .valor { font-size: clamp(1.6rem, 2.2vw, 2rem); font-weight: 800; color: $gray-900; letter-spacing: -.02em; white-space: nowrap; font-variant-numeric: tabular-nums;
+    small { font-size: .95rem; font-weight: 500; color: $mudo; } }
+  .badge { font-weight: 600; }
+  .contexto { font-size: .9rem; margin: .5rem 0 .75rem; }
+  .mais { font-weight: 600; font-size: .9rem; text-decoration: none; &:hover { text-decoration: underline; } }
+}
+.spark { margin: .25rem 0 .5rem; }
+.spark-anos { display: flex; justify-content: space-between; font-size: .72rem; color: $mudo; }
+.medidor { position: relative; margin: .5rem 0 .25rem;
+  .progress { height: 8px; }
+  i { position: absolute; top: -3px; bottom: -3px; width: 2px; background: $gray-700; }
+}
+@media (prefers-reduced-motion: reduce) { .cartao-stat { transition: none; &:hover { transform: none; } } }
+
+// ---------- Seções ----------
+.secao { border: 0; box-shadow: $sombra; }
+.secao-topo { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem;
+  .icon-shape { flex: none; }
+}
+.kicker { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: $primary; }
+.secao h2 { font-weight: 700; color: $gray-900; text-wrap: balance; }
+.resposta {
+  font-size: 1.15rem; line-height: 1.5; color: $gray-900; max-width: 68ch;
+  border-left: 4px solid $serie-1; padding: .15rem 0 .15rem 1rem; margin-bottom: 1rem;
+  &:empty { display: none; }
+}
+.como-ler { color: $gray-700; max-width: 75ch; margin-bottom: 1rem; b { color: $gray-900; } }
+.termo {
+  font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: help;
+  text-decoration: underline dotted 2px; text-underline-offset: 3px; text-decoration-color: $serie-1;
+  &:hover { color: $primary; }
+}
+.pop-termo { max-width: 340px; .popover-body a { display: block; margin-top: .4rem; } }
+details.entenda, details.tabela { margin-top: .75rem;
+  > summary { cursor: pointer; color: $primary; font-weight: 600; font-size: .925rem; padding: .25rem 0; width: fit-content; }
+  > summary:hover { text-decoration: underline; }
+}
+.entenda-corpo { padding-top: .5rem; color: $gray-700; max-width: 75ch; p:last-child { margin-bottom: 0; } }
+details.tabela table { font-variant-numeric: tabular-nums; font-size: .875rem; margin-top: .5rem;
+  td, th { text-align: right; } td:first-child, th:first-child { text-align: left; }
+}
+.grafico { width: 100%; }
+.grafico-box { width: 100%; }
+
+// Tooltip dos gráficos (ApexCharts usa .tip dentro do próprio tooltip; os gráficos à mão usam #tooltip).
+.tip { padding: 8px 12px; font-size: .85rem; line-height: 1.45; color: $gray-900; max-width: 300px; white-space: normal;
+  strong { display: block; margin-bottom: 2px; }
+}
+.muted { color: $mudo; }
+.tooltip-graf {
+  position: fixed; z-index: 1080; pointer-events: none; max-width: 300px; background: #fff; color: $gray-900;
+  border-radius: .5rem; padding: 8px 12px; font-size: .85rem; line-height: 1.45; box-shadow: 0 8px 24px rgba(16, 24, 40, .16);
+  strong { display: block; margin-bottom: 2px; }
+}
+.apexcharts-tooltip { border: 0 !important; }
+.apexcharts-datalabel, .apexcharts-yaxis-label, .apexcharts-xaxis-label { font-family: inherit !important; }
+
+// Gráficos desenhados à mão
+.sankey, .enxame { display: block; width: 100%; height: auto; overflow: visible; border-radius: 6px;
+  text { font-family: inherit; }
+  .tick { fill: $mudo; font-size: 12px; font-variant-numeric: tabular-nums; }
+  .lbl { fill: $gray-700; font-size: 12.5px; }
+  .val { fill: $gray-900; font-size: 12.5px; font-weight: 600; }
+  .grid { stroke: #e4e3dc; }
+  .limit { stroke: #898781; stroke-dasharray: 4 3; }
+  .hit { fill: transparent; cursor: pointer; }
+  .hit:hover, .hit.foco { fill: $hl; }
+  .val, .tick, .lbl { paint-order: stroke; stroke: #fff; stroke-width: 3px; stroke-linejoin: round; }
+}
+.sankey {
+  .link { opacity: .5; transition: opacity .2s; cursor: pointer; }
+  .link.sai { fill: $neutro; opacity: .6; }
+  &.foco .link { opacity: .12; }
+  &.foco .link.on { opacity: .9; }
+  .rot, .no { transition: opacity .3s; }
+  text.n { fill: $gray-900; font-weight: 600; }
+}
+.enxame .dot { transition: transform .7s cubic-bezier(.2, .7, .2, 1), opacity .4s; }
+@media (prefers-reduced-motion: reduce) { .enxame .dot, .sankey .link { transition: none; } }
+.legenda { display: flex; gap: 1rem; list-style: none; padding: 0; margin: 0 0 .5rem; font-size: .875rem; color: $gray-700;
+  li { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+}
+.dica-grafico { font-size: .8rem; color: $mudo; margin: .25rem 0 0; }
+
+// Controle de tempo do fluxo
+.tempo { display: flex; align-items: center; gap: 1rem; padding: .9rem 1.1rem; margin-bottom: 1rem; background: $gray-100; border-radius: .75rem; }
+.tocar { width: 48px; height: 48px; border-radius: 50% !important; display: grid; place-items: center; padding: 0; flex: none; }
+.tempo-trilho { flex: 1; min-width: 0;
+  label { font-size: .875rem; font-weight: 600; color: $gray-700; margin: 0; }
+  output { font-size: 1.4rem; font-weight: 800; color: $gray-900; margin-left: .35rem; font-variant-numeric: tabular-nums; }
+}
+.tempo .form-range {
+  &::-webkit-slider-runnable-track { background: #c9d3df; height: 6px; border-radius: 3px; }
+  &::-moz-range-track { background: #c9d3df; height: 6px; border-radius: 3px; }
+  &::-webkit-slider-thumb { width: 22px; height: 22px; margin-top: -8px; }
+  &::-moz-range-thumb { width: 22px; height: 22px; }
+}
+.tempo-limites { display: flex; justify-content: space-between; font-size: .75rem; color: $mudo; }
+
+// Filtros da comparação
+.filtros { display: grid; gap: .75rem; margin-bottom: 1rem; }
+.filtro { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; }
+.filtro-rotulo { font-weight: 600; font-size: .875rem; color: $gray-700; min-width: 7.5rem; }
+
+// ---------- Recibo ----------
+.campo-imposto { box-shadow: $sombra; border-radius: .75rem; overflow: hidden;
+  .form-control { font-size: 1.9rem; font-weight: 800; color: $gray-900; font-variant-numeric: tabular-nums; }
+  .input-group-text { font-weight: 700; color: $mudo; background: #fff; }
+}
+.nota-recibo { font-size: .875rem; color: $gray-700; margin-top: 1rem; }
+.recibo {
+  background: #fff; border: 1px solid $gray-300; border-radius: 1rem; padding: 1.1rem 1.25rem 1.6rem;
+  box-shadow: 0 8px 28px rgba(16, 24, 40, .1);
+  -webkit-mask: radial-gradient(circle 6px at 50% 100%, transparent 98%, #000) 0 0 / 16px 100% repeat-x;
+  mask: radial-gradient(circle 6px at 50% 100%, transparent 98%, #000) 0 0 / 16px 100% repeat-x;
+  ul { list-style: none; margin: 0; padding: .4rem 0; }
+  li { display: grid; grid-template-columns: minmax(0, 11fr) minmax(0, 6fr) auto; gap: .75rem; align-items: center; padding: .45rem 0; border-bottom: 1px solid $gray-200; }
+}
+.recibo-topo, .recibo-total { display: flex; justify-content: space-between; gap: .75rem; margin: 0; }
+.recibo-topo { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: $mudo; padding-bottom: .6rem; border-bottom: 2px dashed $gray-300; }
+.recibo-total { padding-top: .6rem; border-top: 2px dashed $gray-300; font-size: 1.15rem; font-weight: 800; color: $gray-900; }
+.r-nome { font-weight: 600; color: $gray-900; line-height: 1.3; small { display: block; font-weight: 400; font-size: .78rem; color: $mudo; } }
+.r-barra { height: 8px; background: $gray-200; border-radius: 4px; overflow: hidden;
+  i { display: block; height: 100%; background: $serie-1; border-radius: 4px; transform-origin: 0 50%; transform: scaleX(0); transition: transform .8s cubic-bezier(.2, .7, .2, 1); }
+}
+.recibo.visto .r-barra i { transform: scaleX(1); }
+.r-valor { font-weight: 800; color: $gray-900; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+@media (max-width: 480px) { .recibo li { grid-template-columns: minmax(0, 1fr) auto; } .r-barra { grid-column: 1 / -1; grid-row: 2; } }
+@media (prefers-reduced-motion: reduce) { .r-barra i { transform: none; transition: none; } }
+
+// ---------- Linha do tempo dos pareceres ----------
+.linha-tempo {
+  list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: .75rem;
+  li { position: relative; background: $gray-100; border-radius: .75rem; padding: .9rem 1rem; display: flex; flex-direction: column; gap: .35rem; border-top: 4px solid $success; }
+  li.nao { border-top-color: $danger; }
+  .marco { color: $success; }
+  li.nao .marco { color: $danger; }
+  .ano { font-size: 1.35rem; font-weight: 800; color: $gray-900; line-height: 1; }
+  .badge { width: fit-content; }
+  .voto { font-size: .85rem; }
+}
+
+// ---------- Glossário e fontes ----------
+.glossario-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: .75rem; margin: 0; }
+.glossario-item { background: $gray-100; border-radius: .75rem; padding: 1rem 1.1rem; scroll-margin-top: 90px;
+  dt { font-weight: 700; margin-bottom: .25rem; }
+  dd { font-size: .925rem; }
+}
+.glossario-item:target { box-shadow: 0 0 0 2px $serie-1; }
+.fontes li { margin-bottom: .4rem; a { text-decoration: none; &:hover { text-decoration: underline; } } }
+.ressalvas li { margin-bottom: .5rem; }
+
+.rodape { padding: 1.5rem; color: $mudo; font-size: .85rem; border-top: 1px solid $gray-300; background: #fff; }

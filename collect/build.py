@@ -1,4 +1,4 @@
-"""Monta site/data/indicadores.json a partir das fontes coletadas.
+"""Monta web/data/indicadores.json a partir das fontes coletadas (o site lê no build).
 
 Uso:  python collect/build.py            (usa cache; rebaixa só o ano corrente)
       python collect/build.py --tce 2025 (também agrega fornecedores do TCE-SP)
@@ -17,7 +17,7 @@ import tce
 import tce_dados
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / "site" / "data" / "indicadores.json"
+OUT = ROOT / "web" / "data" / "indicadores.json"
 ANO_INI = 2015
 
 FUNCOES = {
@@ -307,8 +307,6 @@ def main():
     OUT.parent.mkdir(parents=True, exist_ok=True)
     txt = json.dumps(out, ensure_ascii=False, indent=1)
     OUT.write_text(txt, encoding="utf-8")
-    # Mesma coisa como script, para a página abrir direto do disco (file://), sem servidor.
-    OUT.with_suffix(".js").write_text(f"window.DADOS = {txt};\n", encoding="utf-8")
     print("->", OUT)
 
 

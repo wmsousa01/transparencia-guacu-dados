@@ -2,3 +2,6 @@
 /collect/
 __pycache__/
 /*.md
+/web/node_modules/
+/web/.next/
+/web/out/
