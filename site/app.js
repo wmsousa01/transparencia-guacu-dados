@@ -609,8 +609,54 @@
     return `<div class="meter" aria-hidden="true"><span style="width:${w}%;background:${cssVar(`--${nivel}`)}"></span>${marcas.map((mk) => `<i style="left:${(100 * mk) / max}%"></i>`).join("")}</div>`;
   };
 
+  // Minigráfico de tendência dentro do cartão (decorativo: o texto e o gráfico completo carregam o dado).
+  const spark = (serie, { sinal = false } = {}) => {
+    const W = 240, H = 46, p = 4;
+    const pts = serie.filter((s) => s.v != null);
+    if (pts.length < 2) return "";
+    const vs = pts.map((s) => s.v);
+    // Escala a partir do zero: sem isso, uma variação pequena parece um tombo.
+    const lo = Math.min(0, ...vs);
+    const hi = Math.max(0, ...vs);
+    const pad = sinal ? 0 : hi * 0.08;
+    const y = (v) => p + ((hi + pad - v) / (hi - lo + 2 * pad || 1)) * (H - 2 * p);
+    const n = serie.length;
+    const x = (i) => p + (i * (W - 2 * p)) / (n - 1);
+    let g = "";
+    if (sinal) {
+      const bw = ((W - 2 * p) / n) * 0.62;
+      const pos = cssVar("--series-1"), neg = cssVar("--neg");
+      g += `<line x1="0" x2="${W}" y1="${y(0)}" y2="${y(0)}" stroke="${cssVar("--axis")}" stroke-width="1"/>`;
+      serie.forEach((s, i) => {
+        if (s.v == null) return;
+        const cx = p + ((i + 0.5) * (W - 2 * p)) / n;
+        const y0 = y(0), y1 = y(s.v);
+        g += `<rect x="${cx - bw / 2}" y="${Math.min(y0, y1)}" width="${bw}" height="${Math.max(1, Math.abs(y1 - y0))}" rx="1.5" fill="${s.v >= 0 ? pos : neg}" opacity="${i === n - 1 ? 1 : 0.55}"/>`;
+      });
+    } else {
+      const c = cssVar("--series-1");
+      const idx = serie.map((s, i) => (s.v == null ? null : i)).filter((i) => i != null);
+      const d = idx.map((i, k) => `${k ? "L" : "M"}${x(i)},${y(serie[i].v)}`).join("");
+      g += `<path d="${d}L${x(idx[idx.length - 1])},${H}L${x(idx[0])},${H}Z" fill="${c}" opacity=".12"/>`;
+      g += `<path d="${d}" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      const l = idx[idx.length - 1];
+      g += `<circle cx="${x(l)}" cy="${y(serie[l].v)}" r="4" fill="${c}" stroke="${cssVar("--surface-1")}" stroke-width="2"/>`;
+    }
+    return `<div class="spark"><svg viewBox="0 0 ${W} ${H}" aria-hidden="true" focusable="false">${g}</svg>
+      <div class="spark-anos" aria-hidden="true"><span>${serie[0].ano}</span><span>${serie[n - 1].ano}</span></div></div>`;
+  };
+  // Badge de variação contra o ano anterior. Verde/vermelho só reforça: a seta e o texto dizem a direção.
+  const variacao = (atual, anterior, anoAnt, fmtDiff, melhor) => {
+    if (atual == null || anterior == null) return "";
+    const d = atual - anterior;
+    const bom = melhor === "maior" ? d > 0 : d < 0;
+    return `<span class="var ${bom ? "bom" : "ruim"}"><span aria-hidden="true">${d > 0 ? "↑" : "↓"}</span> ${fmtDiff(Math.abs(d))}<span class="sr-only"> ${d > 0 ? "a mais" : "a menos"}</span> vs ${anoAnt}</span>`;
+  };
+  const pontos = (v) => `${nf1.format(v)} ${v === 1 ? "ponto" : "pontos"}`;
+
   function tiles() {
     const a = ult;
+    const ant = fechados[fechados.length - 2];
     const box = document.getElementById("tiles");
     const res = a.resultado_orcamentario;
     const resPct = (100 * res) / a.receita_realizada;
@@ -620,33 +666,41 @@
     const rNivel = res >= 0 ? "good" : resPct > -3 ? "warning" : "serious";
     const cx = a.caixa_liquida_apos_rp;
     const cNivel = cx == null ? null : cx >= 0 ? "good" : "serious";
-    const pessoalVar = fechados.find((x) => x.ano === a.ano - 5);
+    const serie = (f) => fechados.map((x) => ({ ano: x.ano, v: f(x) }));
+    const topo = (nivel, txt, varHtml) => `<div class="tile-topo">${status(nivel, txt)}${varHtml}</div>`;
     box.innerHTML = `
-      <article class="tile">${status(rNivel, res >= 0 ? "Superávit" : "Déficit")}
-        <p class="label">Receita menos despesa</p>
+      <article class="tile">${topo(rNivel, res >= 0 ? "Superávit" : "Déficit",
+        variacao(money(a, res), money(ant, ant.resultado_orcamentario), ant.ano, mi, "maior"))}
+        <h3 class="label">Receita menos despesa</h3>
         <p class="value">${mi(money(a, res))}</p>
-        <p class="ctx">${res >= 0 ? "Sobrou" : "Faltou"} o equivalente a ${pct(Math.abs(resPct))} da receita. Entraram ${mi(money(a, a.receita_realizada))} e foram comprometidos ${mi(money(a, a.despesa_empenhada))}.</p>
-        <a class="mais" href="#h-resultado">Ver a evolução →</a>
+        ${spark(serie((x) => money(x, x.resultado_orcamentario)), { sinal: true })}
+        <p class="ctx">${res >= 0 ? "Sobrou" : "Faltou"} o equivalente a ${pct(Math.abs(resPct))} da receita do ano.</p>
+        <a class="mais" href="#h-resultado">Ver a evolução <span aria-hidden="true">→</span></a>
       </article>
-      ${cNivel ? `<article class="tile">${status(cNivel, cx >= 0 ? "Caixa cobre as contas" : "Caixa no vermelho")}
-        <p class="label">Dinheiro em caixa</p>
+      ${cNivel ? `<article class="tile">${topo(cNivel, cx >= 0 ? "Caixa cobre as contas" : "Caixa no vermelho",
+        variacao(money(a, cx), money(ant, ant.caixa_liquida_apos_rp), ant.ano, mi, "maior"))}
+        <h3 class="label">Dinheiro em caixa</h3>
         <p class="value">${mi(money(a, cx))}</p>
-        <p class="ctx">${cx >= 0 ? "Sobra" : "Falta"} no fim do ano depois de reservar as contas que ficaram para o ano seguinte.</p>
-        <a class="mais" href="#h-caixa">Ver a evolução →</a>
+        ${spark(serie((x) => money(x, x.caixa_liquida_apos_rp)), { sinal: true })}
+        <p class="ctx">${cx >= 0 ? "Sobra" : "Falta"} depois de reservar as contas que ficaram para o ano seguinte.</p>
+        <a class="mais" href="#h-caixa">Ver a evolução <span aria-hidden="true">→</span></a>
       </article>` : ""}
-      <article class="tile">${status(pNivel, pTxt)}
-        <p class="label">Salários e encargos</p>
+      <article class="tile">${topo(pNivel, pTxt, variacao(a.pessoal_pct_rcl, ant.pessoal_pct_rcl, ant.ano, pontos, "menor"))}
+        <h3 class="label">Salários e encargos</h3>
         <p class="value">${pct(a.pessoal_pct_rcl)} <small>da receita</small></p>
+        ${spark(serie((x) => x.pessoal_pct_rcl))}
         ${meter(a.pessoal_pct_rcl, 60, [48.6, 51.3, 54], pNivel)}
-        <p class="ctx">Teto da lei: 54%.${pessoalVar ? ` Em ${pessoalVar.ano} era ${pct(pessoalVar.pessoal_pct_rcl)}.` : ""}</p>
-        <a class="mais" href="#h-pessoal">Ver a evolução →</a>
+        <p class="ctx">A barra mostra a distância até o teto da lei, de 54%.</p>
+        <a class="mais" href="#h-pessoal">Ver a evolução <span aria-hidden="true">→</span></a>
       </article>
-      <article class="tile">${status(dNivel, dNivel === "good" ? "Bem abaixo do limite" : dNivel === "warning" ? "Perto do limite" : "Acima do limite")}
-        <p class="label">Dívida</p>
+      <article class="tile">${topo(dNivel, dNivel === "good" ? "Bem abaixo do limite" : dNivel === "warning" ? "Perto do limite" : "Acima do limite",
+        variacao(a.dcl_pct_rcl, ant.dcl_pct_rcl, ant.ano, pontos, "menor"))}
+        <h3 class="label">Dívida</h3>
         <p class="value">${pct(a.dcl_pct_rcl)} <small>da receita</small></p>
+        ${spark(serie((x) => x.dcl_pct_rcl))}
         ${meter(a.dcl_pct_rcl, 130, [120], dNivel)}
-        <p class="ctx">${mi(money(a, a.dcl))}. Limite do Senado: 120%.</p>
-        <a class="mais" href="#h-divida">Ver a evolução →</a>
+        <p class="ctx">${mi(money(a, a.dcl))}. A barra mostra a distância até o limite de 120%.</p>
+        <a class="mais" href="#h-divida">Ver a evolução <span aria-hidden="true">→</span></a>
       </article>`;
   }
 
