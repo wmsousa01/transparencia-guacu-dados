@@ -26,8 +26,8 @@
     "caixa_liquida_apos_rp"
    ],
    "caixa_liquida_apos_rp": -53816467.83,
-   "saude_pct": 33.74,
-   "educacao_pct": 28.48,
+   "saude_pct_rreo": 33.74,
+   "educacao_pct_rreo": 28.48,
    "receita_composicao": {
     "impostos_taxas": 56784608.1,
     "contribuicoes": 5031468.23,
@@ -37,7 +37,8 @@
     "transf_estado": null,
     "transf_outras": null,
     "outras_correntes": 25507224.27,
-    "capital": 6091387.59
+    "capital": 6091387.59,
+    "correntes": 399605592.53
    },
    "despesa_funcao": {
     "Educação": 138075535.66,
@@ -60,7 +61,15 @@
     "Habitação": 352698.19,
     "Trabalho": 105971.68
    },
-   "ipca_fator": 1.693879
+   "ipca_fator": 1.693879,
+   "educacao_pct": 28.48,
+   "saude_pct": 33.74,
+   "fonte_minimos": {
+    "educacao_pct": "RREO",
+    "saude_pct": "RREO"
+   },
+   "saude_pct_siops": 19.12,
+   "fundeb_profissionais_pct": null
   },
   {
    "ano": 2016,
@@ -83,8 +92,8 @@
     "caixa_liquida_apos_rp"
    ],
    "caixa_liquida_apos_rp": -28516862.740000002,
-   "saude_pct": 33.66,
-   "educacao_pct": 31.62,
+   "saude_pct_rreo": 33.66,
+   "educacao_pct_rreo": 31.62,
    "receita_composicao": {
     "impostos_taxas": 60308320.44,
     "contribuicoes": 5342183.78,
@@ -94,7 +103,8 @@
     "transf_estado": null,
     "transf_outras": null,
     "outras_correntes": 30309426.31,
-    "capital": 23991367.88
+    "capital": 23991367.88,
+    "correntes": 421067570.15
    },
    "despesa_funcao": {
     "Educação": 148446460.01999998,
@@ -117,7 +127,15 @@
     "Habitação": 384492.08,
     "Trabalho": 72800.43000000001
    },
-   "ipca_fator": 1.55774
+   "ipca_fator": 1.55774,
+   "educacao_pct": 31.63,
+   "saude_pct": 33.11,
+   "fonte_minimos": {
+    "educacao_pct": "TCE-SP",
+    "saude_pct": "TCE-SP"
+   },
+   "saude_pct_siops": 32.14,
+   "fundeb_profissionais_pct": 94.0
   },
   {
    "ano": 2017,
@@ -140,8 +158,8 @@
     "dcl_pct_rcl"
    ],
    "caixa_liquida_apos_rp": null,
-   "saude_pct": 32.78,
-   "educacao_pct": 32.89,
+   "saude_pct_rreo": 32.78,
+   "educacao_pct_rreo": 32.89,
    "receita_composicao": {
     "impostos_taxas": 64753792.87,
     "contribuicoes": 4807799.16,
@@ -151,7 +169,8 @@
     "transf_estado": null,
     "transf_outras": null,
     "outras_correntes": 41546254.54,
-    "capital": 12403130.62
+    "capital": 12403130.62,
+    "correntes": 446236693.06
    },
    "despesa_funcao": {
     "Educação": 156914151.10999998,
@@ -174,7 +193,15 @@
     "Transporte": 527488.19,
     "Trabalho": 79617.31
    },
-   "ipca_fator": 1.505844
+   "ipca_fator": 1.505844,
+   "educacao_pct": 33.11,
+   "saude_pct": 30.82,
+   "fonte_minimos": {
+    "educacao_pct": "TCE-SP",
+    "saude_pct": "TCE-SP"
+   },
+   "saude_pct_siops": 32.71,
+   "fundeb_profissionais_pct": 93.65
   },
   {
    "ano": 2018,
@@ -198,8 +225,8 @@
     "caixa_liquida_apos_rp"
    ],
    "caixa_liquida_apos_rp": -3331640.91,
-   "saude_pct": 30.01,
-   "educacao_pct": 31.66,
+   "saude_pct_rreo": 30.01,
+   "educacao_pct_rreo": 31.66,
    "receita_composicao": {
     "impostos_taxas": 79367140.38,
     "contribuicoes": 5068317.18,
@@ -209,7 +236,8 @@
     "transf_estado": 130104206.52,
     "transf_outras": 73753514.01,
     "outras_correntes": 26992570.12,
-    "capital": 7589100.38
+    "capital": 7589100.38,
+    "correntes": 473175973.52
    },
    "despesa_funcao": {
     "Educação": 160519543.47,
@@ -233,7 +261,15 @@
     "Trabalho": 71063.69,
     "Comércio e Serviços": 7950
    },
-   "ipca_fator": 1.45261
+   "ipca_fator": 1.45261,
+   "educacao_pct": 31.9,
+   "saude_pct": 28.06,
+   "fonte_minimos": {
+    "educacao_pct": "TCE-SP",
+    "saude_pct": "TCE-SP"
+   },
+   "saude_pct_siops": 29.94,
+   "fundeb_profissionais_pct": 94.08
   },
   {
    "ano": 2019,
@@ -254,8 +290,8 @@
    "dcl_pct_rcl": 34.04,
    "calculados": [],
    "caixa_liquida_apos_rp": -9496642.74,
-   "saude_pct": 30.73,
-   "educacao_pct": 29.9,
+   "saude_pct_rreo": 30.73,
+   "educacao_pct_rreo": 29.9,
    "receita_composicao": {
     "impostos_taxas": 84406397.64,
     "contribuicoes": 7175600.89,
@@ -265,7 +301,8 @@
     "transf_estado": 136800093.65,
     "transf_outras": 79947021.45,
     "outras_correntes": 32136165.15,
-    "capital": 17946318.59
+    "capital": 17946318.59,
+    "correntes": 507702459.91
    },
    "despesa_funcao": {
     "Educação": 171007392.01,
@@ -288,7 +325,15 @@
     "Judiciária": 344197.74,
     "Trabalho": 73727.09000000001
    },
-   "ipca_fator": 1.400335
+   "ipca_fator": 1.400335,
+   "educacao_pct": 30.01,
+   "saude_pct": 28.34,
+   "fonte_minimos": {
+    "educacao_pct": "TCE-SP",
+    "saude_pct": "TCE-SP"
+   },
+   "saude_pct_siops": 30.55,
+   "fundeb_profissionais_pct": 93.38
   },
   {
    "ano": 2020,
@@ -311,8 +356,8 @@
     "pessoal_pct_rcl"
    ],
    "caixa_liquida_apos_rp": 72603562.65,
-   "saude_pct": null,
-   "educacao_pct": null,
+   "saude_pct_rreo": null,
+   "educacao_pct_rreo": null,
    "receita_composicao": {
     "impostos_taxas": 83440128.08,
     "contribuicoes": 5240978,
@@ -322,7 +367,8 @@
     "transf_estado": 135390505.31,
     "transf_outras": 78178620.44,
     "outras_correntes": 22687705.09,
-    "capital": 23735903.78
+    "capital": 23735903.78,
+    "correntes": 530782091.11
    },
    "despesa_funcao": {
     "Educação": 154382794.41,
@@ -345,7 +391,15 @@
     "Judiciária": 317221.12000000005,
     "Trabalho": 86998.37
    },
-   "ipca_fator": 1.356762
+   "ipca_fator": 1.356762,
+   "educacao_pct": 31.37,
+   "saude_pct": 25.45,
+   "fonte_minimos": {
+    "educacao_pct": "TCE-SP",
+    "saude_pct": "TCE-SP"
+   },
+   "saude_pct_siops": 28.05,
+   "fundeb_profissionais_pct": 93.57
   },
   {
    "ano": 2021,
@@ -366,8 +420,8 @@
    "dcl_pct_rcl": 12.51,
    "calculados": [],
    "caixa_liquida_apos_rp": 68703755.33,
-   "saude_pct": 25.11,
-   "educacao_pct": 25.97,
+   "saude_pct_rreo": 25.11,
+   "educacao_pct_rreo": 25.97,
    "receita_composicao": {
     "impostos_taxas": 101436860.78,
     "contribuicoes": 7105267.55,
@@ -377,7 +431,8 @@
     "transf_estado": 171272259.68,
     "transf_outras": 95421014.31,
     "outras_correntes": 26704035.18,
-    "capital": 24489833.61
+    "capital": 24489833.61,
+    "correntes": 605193601.95
    },
    "despesa_funcao": {
     "Educação": 170534418.76,
@@ -402,7 +457,15 @@
     "Comércio e Serviços": 122600.57,
     "Trabalho": 46241.880000000005
    },
-   "ipca_fator": 1.252763
+   "ipca_fator": 1.252763,
+   "educacao_pct": 27.62,
+   "saude_pct": 25.11,
+   "fonte_minimos": {
+    "educacao_pct": "TCE-SP",
+    "saude_pct": "TCE-SP"
+   },
+   "saude_pct_siops": 28.5,
+   "fundeb_profissionais_pct": 86.59
   },
   {
    "ano": 2022,
@@ -423,8 +486,8 @@
    "dcl_pct_rcl": 8.96,
    "calculados": [],
    "caixa_liquida_apos_rp": 64464727.75,
-   "saude_pct": 26.42,
-   "educacao_pct": 28.16,
+   "saude_pct_rreo": 26.42,
+   "educacao_pct_rreo": 28.16,
    "receita_composicao": {
     "impostos_taxas": 118883842.51,
     "contribuicoes": 7674291.09,
@@ -434,7 +497,8 @@
     "transf_estado": 192154305.79,
     "transf_outras": 107464919.02,
     "outras_correntes": 28212729.59,
-    "capital": 23255132.94
+    "capital": 23255132.94,
+    "correntes": 698617756.81
    },
    "despesa_funcao": {
     "Educação": 221362027.11,
@@ -459,7 +523,15 @@
     "Comércio e Serviços": 323947.94,
     "Trabalho": 75822.47
    },
-   "ipca_fator": 1.146379
+   "ipca_fator": 1.146379,
+   "educacao_pct": 26.9,
+   "saude_pct": 26.42,
+   "fonte_minimos": {
+    "educacao_pct": "TCE-SP",
+    "saude_pct": "TCE-SP"
+   },
+   "saude_pct_siops": 26.42,
+   "fundeb_profissionais_pct": 82.94
   },
   {
    "ano": 2023,
@@ -480,8 +552,8 @@
    "dcl_pct_rcl": 32.55,
    "calculados": [],
    "caixa_liquida_apos_rp": -75666155.44,
-   "saude_pct": null,
-   "educacao_pct": null,
+   "saude_pct_rreo": null,
+   "educacao_pct_rreo": null,
    "receita_composicao": {
     "impostos_taxas": 135402004.76,
     "contribuicoes": 7836703.25,
@@ -491,7 +563,8 @@
     "transf_estado": 190481714.07,
     "transf_outras": 106004787.94,
     "outras_correntes": 34089385.26,
-    "capital": 37799272.77
+    "capital": 37799272.77,
+    "correntes": 743769218.35
    },
    "despesa_funcao": {
     "Educação": 247122199.01,
@@ -516,7 +589,15 @@
     "Comércio e Serviços": 342583.93,
     "Trabalho": 79060.68000000001
    },
-   "ipca_fator": 1.096033
+   "ipca_fator": 1.096033,
+   "educacao_pct": 31.2,
+   "saude_pct": 35.59,
+   "fonte_minimos": {
+    "educacao_pct": "TCE-SP",
+    "saude_pct": "TCE-SP"
+   },
+   "saude_pct_siops": 34.11,
+   "fundeb_profissionais_pct": 81.17
   },
   {
    "ano": 2024,
@@ -537,8 +618,8 @@
    "dcl_pct_rcl": 35.29,
    "calculados": [],
    "caixa_liquida_apos_rp": -1282979.7,
-   "saude_pct": null,
-   "educacao_pct": null,
+   "saude_pct_rreo": null,
+   "educacao_pct_rreo": null,
    "receita_composicao": {
     "impostos_taxas": 152477342.2,
     "contribuicoes": 9996476.69,
@@ -548,7 +629,8 @@
     "transf_estado": 232629850.26,
     "transf_outras": 121209157.32,
     "outras_correntes": 36954450.73,
-    "capital": 53537264.96
+    "capital": 53537264.96,
+    "correntes": 841791410.84
    },
    "despesa_funcao": {
     "Educação": 258703228.17,
@@ -573,7 +655,15 @@
     "Comércio e Serviços": 224958.13,
     "Trabalho": 70585.03000000001
    },
-   "ipca_fator": 1.050168
+   "ipca_fator": 1.050168,
+   "educacao_pct": 27.25,
+   "saude_pct": 26.56,
+   "fonte_minimos": {
+    "educacao_pct": "TCE-SP",
+    "saude_pct": "TCE-SP"
+   },
+   "saude_pct_siops": 33.21,
+   "fundeb_profissionais_pct": 84.63
   },
   {
    "ano": 2025,
@@ -594,8 +684,8 @@
    "dcl_pct_rcl": 37.41,
    "calculados": [],
    "caixa_liquida_apos_rp": -45313155.95,
-   "saude_pct": null,
-   "educacao_pct": null,
+   "saude_pct_rreo": null,
+   "educacao_pct_rreo": null,
    "receita_composicao": {
     "impostos_taxas": 169795620.59,
     "contribuicoes": 11125895.45,
@@ -605,7 +695,8 @@
     "transf_estado": 246855143.85,
     "transf_outras": 130507241.16,
     "outras_correntes": 49562416.47,
-    "capital": 21491424.61
+    "capital": 21491424.61,
+    "correntes": 926030562.09
    },
    "despesa_funcao": {
     "Educação": 296182120.53000003,
@@ -630,7 +721,15 @@
     "Direitos da Cidadania": 74065.61,
     "Trabalho": 44557.93
    },
-   "ipca_fator": 1.0
+   "ipca_fator": 1.0,
+   "educacao_pct": 31.14,
+   "saude_pct": 28.35,
+   "fonte_minimos": {
+    "educacao_pct": "TCE-SP",
+    "saude_pct": "TCE-SP"
+   },
+   "saude_pct_siops": 34.17,
+   "fundeb_profissionais_pct": 78.47
   },
   {
    "ano": 2026,
@@ -651,8 +750,8 @@
    "dcl_pct_rcl": 23.07,
    "calculados": [],
    "caixa_liquida_apos_rp": null,
-   "saude_pct": 23.99,
-   "educacao_pct": 29.97,
+   "saude_pct_rreo": 23.99,
+   "educacao_pct_rreo": 29.97,
    "receita_composicao": {
     "impostos_taxas": 129182338.65,
     "contribuicoes": 8135877.31,
@@ -662,7 +761,8 @@
     "transf_estado": 176236266.7,
     "transf_outras": 88478564.9,
     "outras_correntes": 29736960.04,
-    "capital": 14505636.2
+    "capital": 14505636.2,
+    "correntes": 658975218.46
    },
    "despesa_funcao": {
     "Educação": 205884763.31,
@@ -687,7 +787,77 @@
     "Direitos da Cidadania": 127994.41,
     "Trabalho": 28979.04
    },
-   "ipca_fator": 0.960195
+   "ipca_fator": 0.960195,
+   "educacao_pct": 29.97,
+   "saude_pct": 23.99,
+   "fonte_minimos": {
+    "educacao_pct": "RREO",
+    "saude_pct": "RREO"
+   },
+   "saude_pct_siops": null,
+   "fundeb_profissionais_pct": null
+  }
+ ],
+ "pareceres": [
+  {
+   "ano": 2008,
+   "parecer": "Desfavorável",
+   "processo": "2009/026/08",
+   "voto": "http://www2.tce.sp.gov.br/arqs_juri/pdf/124956.pdf"
+  },
+  {
+   "ano": 2009,
+   "parecer": "Favorável",
+   "processo": "474/026/09",
+   "voto": "http://www2.tce.sp.gov.br/arqs_juri/pdf/137325.pdf"
+  },
+  {
+   "ano": 2010,
+   "parecer": "Favorável",
+   "processo": "2872/026/10",
+   "voto": "http://www2.tce.sp.gov.br/arqs_juri/pdf/197750.pdf"
+  },
+  {
+   "ano": 2011,
+   "parecer": "Desfavorável",
+   "processo": "1344/026/11",
+   "voto": "http://www2.tce.sp.gov.br/arqs_juri/pdf/275873.pdf"
+  },
+  {
+   "ano": 2012,
+   "parecer": "Desfavorável",
+   "processo": "1933/026/12",
+   "voto": "http://www2.tce.sp.gov.br/arqs_juri/pdf/510945.pdf"
+  },
+  {
+   "ano": 2013,
+   "parecer": "Favorável",
+   "processo": "2001/026/13",
+   "voto": "http://www2.tce.sp.gov.br/arqs_juri/pdf/467081.pdf"
+  },
+  {
+   "ano": 2014,
+   "parecer": "Favorável",
+   "processo": "474/026/14",
+   "voto": "http://www2.tce.sp.gov.br/arqs_juri/pdf/587425.pdf"
+  },
+  {
+   "ano": 2015,
+   "parecer": "Favorável",
+   "processo": "2566/026/15",
+   "voto": "http://www2.tce.sp.gov.br/arqs_juri/pdf/623378.pdf"
+  },
+  {
+   "ano": 2016,
+   "parecer": "Favorável",
+   "processo": "4400/989/16",
+   "voto": "http://www2.tce.sp.gov.br/arqs_juri/pdf/674834.pdf"
+  },
+  {
+   "ano": 2017,
+   "parecer": "Favorável",
+   "processo": "6878/989/16",
+   "voto": "http://www2.tce.sp.gov.br/arqs_juri/pdf/724082.pdf"
   }
  ],
  "fontes": [
@@ -696,14 +866,486 @@
    "url": "https://siconfi.tesouro.gov.br"
   },
   {
+   "nome": "TCE-SP: Resultado das Análises Audesp (LRF, Ensino, Saúde) e Pareceres",
+   "url": "https://transparencia.tce.sp.gov.br/conjunto-de-dados"
+  },
+  {
    "nome": "Portal da Transparência Municipal do TCE-SP",
    "url": "https://transparencia.tce.sp.gov.br/municipio/mogi-guacu"
+  },
+  {
+   "nome": "SIOPS / Ministério da Saúde (indicador 3.2, LC 141/2012)",
+   "url": "http://siops-asp.datasus.gov.br/CGI/tabcgi.exe?SIOPS/serhist/municipio/mIndicadores.def"
   },
   {
    "nome": "IPCA, Banco Central (SGS 433)",
    "url": "https://www3.bcb.gov.br/sgspub"
   }
  ],
+ "comparacao": {
+  "ano": 2025,
+  "municipios": [
+   {
+    "ibge": 3530706,
+    "nome": "Mogi Guaçu",
+    "alvo": true,
+    "grupos": [],
+    "populacao": 154487,
+    "pessoal_pct": 34.06,
+    "dcl_pct": 37.41,
+    "resultado_pct": -5.4,
+    "caixa_hab": -293.3137153935283,
+    "rcl_hab": 5994.229689812088,
+    "tributaria_pct": 19.54,
+    "ensino_pct": 31.14,
+    "saude_pct": 28.35,
+    "saude_pct_siops": 34.17,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3530805,
+    "nome": "Mogi Mirim",
+    "alvo": false,
+    "grupos": [
+     "regiao"
+    ],
+    "populacao": 90997,
+    "pessoal_pct": 35.73,
+    "dcl_pct": 8.41,
+    "resultado_pct": 3.6,
+    "caixa_hab": 929.7449476356363,
+    "rcl_hab": 7995.168014879611,
+    "tributaria_pct": 29.32,
+    "ensino_pct": 27.78,
+    "saude_pct": 28.6,
+    "saude_pct_siops": 28.17,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3522604,
+    "nome": "Itapira",
+    "alvo": false,
+    "grupos": [
+     "regiao"
+    ],
+    "populacao": 70438,
+    "pessoal_pct": 45.09,
+    "dcl_pct": 32.54,
+    "resultado_pct": -2.59,
+    "caixa_hab": -530.2462375422357,
+    "rcl_hab": 6198.747503194299,
+    "tributaria_pct": 25.77,
+    "ensino_pct": 26.46,
+    "saude_pct": 21.91,
+    "saude_pct_siops": 21.52,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3557303,
+    "nome": "Estiva Gerbi",
+    "alvo": false,
+    "grupos": [
+     "regiao"
+    ],
+    "populacao": 11394,
+    "pessoal_pct": 46.71,
+    "dcl_pct": 35.71,
+    "resultado_pct": -1.31,
+    "caixa_hab": -152.7595822362647,
+    "rcl_hab": 6866.992737405652,
+    "tributaria_pct": 17.99,
+    "ensino_pct": 26.24,
+    "saude_pct": 22.83,
+    "saude_pct_siops": 22.83,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3500303,
+    "nome": "Aguaí",
+    "alvo": false,
+    "grupos": [
+     "regiao"
+    ],
+    "populacao": 31561,
+    "pessoal_pct": 34.43,
+    "dcl_pct": -17.67,
+    "resultado_pct": 2.9,
+    "caixa_hab": 1191.0352973606668,
+    "rcl_hab": 5495.96137384747,
+    "tributaria_pct": 18.07,
+    "ensino_pct": 25.82,
+    "saude_pct": 28.91,
+    "saude_pct_siops": 28.91,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3512209,
+    "nome": "Conchal",
+    "alvo": false,
+    "grupos": [
+     "regiao"
+    ],
+    "populacao": 28184,
+    "pessoal_pct": 47.05,
+    "dcl_pct": -0.39,
+    "resultado_pct": 9.52,
+    "caixa_hab": 286.6624148453023,
+    "rcl_hab": 6186.605657110417,
+    "tributaria_pct": 23.77,
+    "ensino_pct": 28.17,
+    "saude_pct": 22.33,
+    "saude_pct_siops": 24.4,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3515152,
+    "nome": "Engenheiro Coelho",
+    "alvo": false,
+    "grupos": [
+     "regiao"
+    ],
+    "populacao": 20119,
+    "pessoal_pct": 48.88,
+    "dcl_pct": 48.39,
+    "resultado_pct": 7.91,
+    "caixa_hab": -859.0210348426859,
+    "rcl_hab": 5803.876070381231,
+    "tributaria_pct": 21.29,
+    "ensino_pct": 25.82,
+    "saude_pct": 28.37,
+    "saude_pct_siops": 27.01,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3548005,
+    "nome": "Santo Antônio de Posse",
+    "alvo": false,
+    "grupos": [
+     "regiao"
+    ],
+    "populacao": 23102,
+    "pessoal_pct": 43.71,
+    "dcl_pct": -4.75,
+    "resultado_pct": 7.91,
+    "caixa_hab": 427.2909293567657,
+    "rcl_hab": 7906.39231971258,
+    "tributaria_pct": 21.03,
+    "ensino_pct": 29.28,
+    "saude_pct": 27.92,
+    "saude_pct_siops": 27.92,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3503307,
+    "nome": "Araras",
+    "alvo": false,
+    "grupos": [
+     "regiao",
+     "porte"
+    ],
+    "populacao": 131300,
+    "pessoal_pct": 41.36,
+    "dcl_pct": 34.4,
+    "resultado_pct": 9.35,
+    "caixa_hab": -345.00217509520184,
+    "rcl_hab": 6854.041270525515,
+    "tributaria_pct": 27.58,
+    "ensino_pct": 25.93,
+    "saude_pct": 20.41,
+    "saude_pct_siops": 20.2,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3526704,
+    "nome": "Leme",
+    "alvo": false,
+    "grupos": [
+     "regiao"
+    ],
+    "populacao": 97516,
+    "pessoal_pct": 40.57,
+    "dcl_pct": -2.12,
+    "resultado_pct": 5.45,
+    "caixa_hab": 454.94947721399564,
+    "rcl_hab": 5989.021917736577,
+    "tributaria_pct": 29.25,
+    "ensino_pct": 25.64,
+    "saude_pct": 28.66,
+    "saude_pct_siops": 31.19,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3554003,
+    "nome": "Tatuí",
+    "alvo": false,
+    "grupos": [
+     "porte"
+    ],
+    "populacao": 122991,
+    "pessoal_pct": 42.32,
+    "dcl_pct": 38.44,
+    "resultado_pct": 5.08,
+    "caixa_hab": -454.9173865567399,
+    "rcl_hab": 5134.668562659057,
+    "tributaria_pct": 28.08,
+    "ensino_pct": 27.18,
+    "saude_pct": 29.68,
+    "saude_pct_siops": 29.66,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3551702,
+    "nome": "Sertãozinho",
+    "alvo": false,
+    "grupos": [
+     "porte"
+    ],
+    "populacao": 127670,
+    "pessoal_pct": 36.32,
+    "dcl_pct": -36.37,
+    "resultado_pct": 12.69,
+    "caixa_hab": 2055.081096107151,
+    "rcl_hab": 6854.864227539751,
+    "tributaria_pct": 32.05,
+    "ensino_pct": 25.23,
+    "saude_pct": 21.5,
+    "saude_pct_siops": 21.5,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3556206,
+    "nome": "Valinhos",
+    "alvo": false,
+    "grupos": [
+     "porte"
+    ],
+    "populacao": 132846,
+    "pessoal_pct": 39.02,
+    "dcl_pct": 29.86,
+    "resultado_pct": 5.96,
+    "caixa_hab": 696.9452358369841,
+    "rcl_hab": 7495.812262318775,
+    "tributaria_pct": 43.75,
+    "ensino_pct": 29.38,
+    "saude_pct": 25.97,
+    "saude_pct_siops": 27.62,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3557006,
+    "nome": "Votorantim",
+    "alvo": false,
+    "grupos": [
+     "porte"
+    ],
+    "populacao": 137319,
+    "pessoal_pct": 43.07,
+    "dcl_pct": 3.24,
+    "resultado_pct": -5.23,
+    "caixa_hab": -125.8459666906983,
+    "rcl_hab": 4532.14851353418,
+    "tributaria_pct": 39.29,
+    "ensino_pct": 29.41,
+    "saude_pct": 37.73,
+    "saude_pct_siops": 36.48,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3525300,
+    "nome": "Jaú",
+    "alvo": false,
+    "grupos": [
+     "porte"
+    ],
+    "populacao": 132351,
+    "pessoal_pct": 33.13,
+    "dcl_pct": -29.47,
+    "resultado_pct": 1.42,
+    "caixa_hab": 1443.6846155299168,
+    "rcl_hab": 5484.47547740478,
+    "tributaria_pct": 28.78,
+    "ensino_pct": 25.67,
+    "saude_pct": 31.11,
+    "saude_pct_siops": 29.2,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3545209,
+    "nome": "Salto",
+    "alvo": false,
+    "grupos": [
+     "porte"
+    ],
+    "populacao": 141988,
+    "pessoal_pct": 44.59,
+    "dcl_pct": -1.65,
+    "resultado_pct": 4.59,
+    "caixa_hab": 376.88810582584443,
+    "rcl_hab": 5361.787895878525,
+    "tributaria_pct": 27.82,
+    "ensino_pct": 27.31,
+    "saude_pct": 27.6,
+    "saude_pct_siops": 27.6,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3510500,
+    "nome": "Caraguatatuba",
+    "alvo": false,
+    "grupos": [
+     "porte"
+    ],
+    "populacao": 132558,
+    "pessoal_pct": 39.65,
+    "dcl_pct": 16.09,
+    "resultado_pct": 14.68,
+    "caixa_hab": 1076.065573333937,
+    "rcl_hab": 9820.667452813108,
+    "tributaria_pct": 36.01,
+    "ensino_pct": 28.67,
+    "saude_pct": 23.79,
+    "saude_pct_siops": 23.36,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3507506,
+    "nome": "Botucatu",
+    "alvo": false,
+    "grupos": [
+     "porte"
+    ],
+    "populacao": 145272,
+    "pessoal_pct": 33.13,
+    "dcl_pct": -5.79,
+    "resultado_pct": 3.19,
+    "caixa_hab": 294.78650421278707,
+    "rcl_hab": 5044.231741009968,
+    "tributaria_pct": 28.68,
+    "ensino_pct": 25.14,
+    "saude_pct": 28.73,
+    "saude_pct_siops": 29.9,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3522307,
+    "nome": "Itapetininga",
+    "alvo": false,
+    "grupos": [
+     "porte"
+    ],
+    "populacao": 166959,
+    "pessoal_pct": 46.82,
+    "dcl_pct": 21.3,
+    "resultado_pct": 2.44,
+    "caixa_hab": 19.73187860492696,
+    "rcl_hab": 4737.498006456674,
+    "tributaria_pct": 26.59,
+    "ensino_pct": 27.95,
+    "saude_pct": 34.13,
+    "saude_pct_siops": 34.13,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3504107,
+    "nome": "Atibaia",
+    "alvo": false,
+    "grupos": [
+     "porte"
+    ],
+    "populacao": 171672,
+    "pessoal_pct": 35.98,
+    "dcl_pct": 6.53,
+    "resultado_pct": 5.89,
+    "caixa_hab": 660.6051209282818,
+    "rcl_hab": 7194.07169049117,
+    "tributaria_pct": 37.23,
+    "ensino_pct": 25.55,
+    "saude_pct": 25.0,
+    "saude_pct_siops": 25.13,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3538006,
+    "nome": "Pindamonhangaba",
+    "alvo": false,
+    "grupos": [
+     "porte"
+    ],
+    "populacao": 164932,
+    "pessoal_pct": 46.32,
+    "dcl_pct": 0.34,
+    "resultado_pct": -8.96,
+    "caixa_hab": -179.50869685688647,
+    "rcl_hab": 5725.257016528024,
+    "tributaria_pct": 26.43,
+    "ensino_pct": 28.18,
+    "saude_pct": 35.24,
+    "saude_pct_siops": 33.01,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3523909,
+    "nome": "Itu",
+    "alvo": false,
+    "grupos": [
+     "porte"
+    ],
+    "populacao": 176548,
+    "pessoal_pct": 33.34,
+    "dcl_pct": 5.92,
+    "resultado_pct": 5.51,
+    "caixa_hab": 84.35547777374993,
+    "rcl_hab": 7143.031545075561,
+    "tributaria_pct": 33.86,
+    "ensino_pct": 26.56,
+    "saude_pct": 29.01,
+    "saude_pct_siops": 27.87,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3507605,
+    "nome": "Bragança Paulista",
+    "alvo": false,
+    "grupos": [
+     "porte"
+    ],
+    "populacao": 181556,
+    "pessoal_pct": 27.21,
+    "dcl_pct": -21.63,
+    "resultado_pct": 10.95,
+    "caixa_hab": 1241.1469772411817,
+    "rcl_hab": 6149.7395935689265,
+    "tributaria_pct": 35.75,
+    "ensino_pct": 26.53,
+    "saude_pct": 26.08,
+    "saude_pct_siops": 25.42,
+    "faltando_siconfi": false
+   },
+   {
+    "ibge": 3545803,
+    "nome": "Santa Bárbara d'Oeste",
+    "alvo": false,
+    "grupos": [
+     "porte"
+    ],
+    "populacao": 183447,
+    "pessoal_pct": 49.48,
+    "dcl_pct": 26.2,
+    "resultado_pct": -1.76,
+    "caixa_hab": -714.5334029992314,
+    "rcl_hab": 5207.792808495097,
+    "tributaria_pct": 28.85,
+    "ensino_pct": 26.46,
+    "saude_pct": 33.12,
+    "saude_pct_siops": 33.17,
+    "faltando_siconfi": false
+   }
+  ],
+  "criterios": {
+   "regiao": "Cidades da Baixa Mogiana e entorno de Mogi Guaçu",
+   "porte": "Municípios paulistas com população até 20% acima ou abaixo da de Mogi Guaçu, fora da Região Metropolitana de São Paulo"
+  }
+ },
  "fornecedores": {
   "ano": 2025,
   "total_pago": 687606192.25,

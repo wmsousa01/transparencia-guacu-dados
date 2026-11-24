@@ -10,8 +10,11 @@ import json
 from pathlib import Path
 
 import ipca
+import municipios
 import siconfi
+import siops
 import tce
+import tce_dados
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "site" / "data" / "indicadores.json"
@@ -42,9 +45,9 @@ def pick(items, anexo, cod, coluna_prefix=None, coluna_contem=None, prefixo=Fals
     return None
 
 
-def ano_siconfi(ano: int, corrente: bool):
-    bim, r = siconfi.ultimo_rreo(ano, corrente)
-    quad, g = siconfi.ultimo_rgf(ano, corrente)
+def ano_siconfi(ano: int, corrente: bool, ibge: int = siconfi.IBGE):
+    bim, r = siconfi.ultimo_rreo(ano, corrente, ibge)
+    quad, g = siconfi.ultimo_rgf(ano, corrente, ibge)
     if not r and not g:
         return None
 
@@ -114,8 +117,8 @@ def ano_siconfi(ano: int, corrente: bool):
         "calculados": calculados,
         # Só existe no 3º quadrimestre: caixa líquida depois de inscrever restos a pagar.
         "caixa_liquida_apos_rp": caixa if quad == 3 else None,
-        "saude_pct": pick(r, "14", "AplicacaoTotalDasDespesasComAcoesEServicosPublicosDeSaude", coluna_contem="% APLICADO"),
-        "educacao_pct": pick(r, "14", "MinimoAnualDasReceitasDeImpostosNaManutencaoEDesenvolvimentoDoEnsino"
+        "saude_pct_rreo": pick(r, "14", "AplicacaoTotalDasDespesasComAcoesEServicosPublicosDeSaude", coluna_contem="% APLICADO"),
+        "educacao_pct_rreo": pick(r, "14", "MinimoAnualDasReceitasDeImpostosNaManutencaoEDesenvolvimentoDoEnsino"
                              "DemonstrativoSimplificado", coluna_contem="% APLICADO"),
         "receita_composicao": {
             "impostos_taxas": rec("ReceitaTributaria"),
@@ -127,6 +130,7 @@ def ano_siconfi(ano: int, corrente: bool):
             "transf_outras": rec("TransferenciasCorrentesDeOutrasInstituicoesPublicas"),
             "outras_correntes": rec("OutrasReceitasCorrentes"),
             "capital": rec("ReceitasDeCapital"),
+            "correntes": rec("ReceitasCorrentes"),
         },
         "despesa_funcao": dict(sorted(funcoes.items(), key=lambda kv: -kv[1])),
     }
@@ -175,9 +179,63 @@ def fornecedores(ano: int, top=15):
     }
 
 
+def enriquecer_minimos(anos, analises, saude_siops):
+    """Ensino e saúde: TCE-SP (régua do Tribunal) como principal; RREO onde o TCE não cobre (2015).
+    O SIOPS de saúde vai junto para conferência, porque os sistemas divergem em alguns anos."""
+    for a in anos:
+        t = analises.get((siconfi.IBGE, a["ano"]), {})
+        fonte = {}
+        for k, tk in (("educacao_pct", "ensino_pct"), ("saude_pct", "saude_pct")):
+            if t.get(tk) is not None and not a["parcial"]:
+                a[k], fonte[k] = t[tk], "TCE-SP"
+            elif a.get(k + "_rreo") is not None:
+                a[k], fonte[k] = a[k + "_rreo"], "RREO"
+            else:
+                a[k] = None
+        a["fonte_minimos"] = fonte
+        a["saude_pct_siops"] = None if a["parcial"] else saude_siops.get((siconfi.IBGE, a["ano"]))
+        a["fundeb_profissionais_pct"] = t.get("fundeb_profissionais_pct")
+
+
+def comparacao(ano: int, analises, saude_siops):
+    """Um registro por município (alvo + grupos) com os indicadores do ano fechado."""
+    linhas = []
+    for cod, nome in municipios.todos().items():
+        s = ano_siconfi(ano, False, cod) or {}
+        t = analises.get((cod, ano), {})
+        rc = s.get("receita_composicao") or {}
+        pop = s.get("populacao")
+        tribut = (rc.get("impostos_taxas") or 0) + (rc.get("contribuicoes") or 0)
+        div = lambda x, y: None if x is None or not y else x / y  # noqa: E731
+        linhas.append({
+            "ibge": cod,
+            "nome": nome,
+            "alvo": cod == siconfi.IBGE,
+            "grupos": [g for g, lst in (("regiao", municipios.REGIAO), ("porte", municipios.PORTE))
+                       if any(c == cod for c, _ in lst)],
+            "populacao": pop,
+            "pessoal_pct": s.get("pessoal_pct_rcl") if s.get("pessoal_pct_rcl") is not None else t.get("pessoal_pct"),
+            "dcl_pct": s.get("dcl_pct_rcl"),
+            "resultado_pct": t.get("resultado_pct"),
+            "caixa_hab": div(s.get("caixa_liquida_apos_rp"), pop),
+            "rcl_hab": div(s.get("rcl"), pop),
+            "tributaria_pct": None if not rc.get("correntes") else round(100 * tribut / rc["correntes"], 2),
+            "ensino_pct": t.get("ensino_pct"),
+            "saude_pct": t.get("saude_pct"),
+            "saude_pct_siops": saude_siops.get((cod, ano)),
+            "faltando_siconfi": not s,
+        })
+        print(f"  comparação {nome}: {'ok' if s else 'SEM SICONFI'}")
+    return {"ano": ano, "municipios": linhas,
+            "criterios": {"regiao": "Cidades da Baixa Mogiana e entorno de Mogi Guaçu",
+                          "porte": "Municípios paulistas com população até 20% acima ou abaixo da de "
+                                   "Mogi Guaçu, fora da Região Metropolitana de São Paulo"}}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--tce", type=int, help="ano para agregar fornecedores do TCE-SP")
+    ap.add_argument("--sem-comparacao", action="store_true", help="pula a coleta dos municípios vizinhos")
     args = ap.parse_args()
 
     hoje = dt.date.today()
@@ -193,6 +251,10 @@ def main():
     for a in anos:
         a["ipca_fator"] = round(fat.get(a["ano"], 1.0), 6)
 
+    analises = tce_dados.analises()
+    saude_siops = siops.saude_pct(list(municipios.todos()), ANO_INI)
+    enriquecer_minimos(anos, analises, saude_siops)
+
     out = {
         "municipio": "Mogi Guaçu",
         "uf": "SP",
@@ -200,12 +262,19 @@ def main():
         "gerado_em": hoje.isoformat(),
         "base_precos": ultimo_fechado,
         "anos": anos,
+        "pareceres": tce_dados.pareceres(siconfi.IBGE),
         "fontes": [
             {"nome": "Siconfi / Tesouro Nacional (RREO e RGF)", "url": "https://siconfi.tesouro.gov.br"},
+            {"nome": "TCE-SP: Resultado das Análises Audesp (LRF, Ensino, Saúde) e Pareceres",
+             "url": "https://transparencia.tce.sp.gov.br/conjunto-de-dados"},
             {"nome": "Portal da Transparência Municipal do TCE-SP", "url": "https://transparencia.tce.sp.gov.br/municipio/mogi-guacu"},
+            {"nome": "SIOPS / Ministério da Saúde (indicador 3.2, LC 141/2012)",
+             "url": "http://siops-asp.datasus.gov.br/CGI/tabcgi.exe?SIOPS/serhist/municipio/mIndicadores.def"},
             {"nome": "IPCA, Banco Central (SGS 433)", "url": "https://www3.bcb.gov.br/sgspub"},
         ],
     }
+    if not args.sem_comparacao:
+        out["comparacao"] = comparacao(ultimo_fechado, analises, saude_siops)
     if args.tce:
         out["fornecedores"] = fornecedores(args.tce)
 

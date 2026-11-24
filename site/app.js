@@ -10,7 +10,7 @@
   // ---------- formatação ----------
   const nf1 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
   const nf0 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
-  const pct = (v) => (v == null ? "—" : `${nf1.format(v)}%`);
+  const pct = (v) => (v == null ? "—" : `${v < 0 ? "−" : ""}${nf1.format(Math.abs(v))}%`);
   const mi = (v) => {
     if (v == null) return "—";
     const a = Math.abs(v);
@@ -143,7 +143,7 @@
   }
 
   // ---------- linhas (% com limites) ----------
-  function linhas(fig, { anos, series, limites = [], yMax, fmt = pct, yFmtTick = (t) => `${nf0.format(t)}%` }) {
+  function linhas(fig, { anos, series, limites = [], limitesAbaixo = false, yMax, fmt = pct, yFmtTick = (t) => `${nf0.format(t)}%` }) {
     fig.innerHTML = "";
     if (series.length > 1) legenda(fig, series.map((s) => ({ name: s.name, color: s.color, line: true })));
     const W = Math.max(fig.clientWidth - 32, 300);
@@ -167,7 +167,7 @@
     [...limites].sort((a, b) => b.y - a.y).forEach((l) => {
       el("line", { x1: m.l, x2: W - m.r, y1: y(l.y), y2: y(l.y), class: "limit" }, svg);
       const xEnd = prev && y(l.y) - prev.y < 14 ? prev.x - prev.w - 14 : W - m.r - 4;
-      txt(svg, xEnd, y(l.y) - 4, l.label, "lbl", "end");
+      txt(svg, xEnd, limitesAbaixo ? y(l.y) + 14 : y(l.y) - 4, l.label, "lbl", "end");
       prev = { x: xEnd, y: y(l.y), w: l.label.length * 6.6 };
     });
     anos.forEach((a, i) => txt(svg, x(i), H - 8, a.parcial ? `${a.ano}*` : a.ano, "tick"));
@@ -203,7 +203,8 @@
       bindTip(hit, () => {
         const linhasTip = series.map((s) => {
           const v = s.valor(a);
-          const calc = s.calc && a.calculados?.includes(s.calc) ? ' <span class="muted">(calculado)</span>' : "";
+          const calc = (s.calc && a.calculados?.includes(s.calc) ? ' <span class="muted">(calculado)</span>' : "")
+            + (s.fonte && a.fonte_minimos?.[s.fonte] === "RREO" ? ' <span class="muted">(RREO)</span>' : "");
           return `${series.length > 1 ? `${s.name}: ` : ""}${v == null ? "sem dado" : fmt(v)}${calc}`;
         }).join("<br>");
         const p = a.parcial ? `<br><span class="muted">12 meses até o ${a.periodo_rgf}</span>` : "";
@@ -257,6 +258,133 @@
       bindTip(hit, `<strong>${p.nome}</strong>${mi(p.valor)} · ${pct((100 * p.valor) / total)}${p.det ? `<br><span class="muted">${p.det}</span>` : ""}`);
       x0 += w + gap;
     });
+  }
+
+  // ---------- ranking (barras horizontais com sinal, um município em destaque) ----------
+  function ranking(fig, { itens, fmt, refs = [] }) {
+    fig.innerHTML = "";
+    const W = Math.max(fig.clientWidth - 32, 300);
+    const rowH = 28;
+    const labelW = Math.min(190, W * 0.34);
+    const valW = 76;
+    const top = 22; // espaço para os rótulos das linhas de referência
+    const com = itens.filter((i) => i.valor != null);
+    const sem = itens.filter((i) => i.valor == null);
+    const H = top + itens.length * rowH + 4;
+    const vals = [...com.map((i) => i.valor), ...refs.map((r) => r.v)];
+    const lo = Math.min(0, ...vals);
+    const hi = Math.max(0, ...vals);
+    const negW = lo < 0 ? valW : 0; // espaço para o rótulo à esquerda das barras negativas
+    const x = (v) => labelW + negW + ((v - lo) / (hi - lo || 1)) * (W - labelW - negW - valW);
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img" }, fig);
+    const destaque = cssVar("--series-1");
+    const outros = cssVar("--neutral");
+
+    refs.forEach((r, k) => {
+      el("line", { x1: x(r.v), x2: x(r.v), y1: top - 4, y2: H, class: "limit" }, svg);
+      txt(svg, x(r.v), 10 + (k % 2) * 0, r.label, "lbl", k === 0 && refs.length > 1 && Math.abs(x(r.v) - x(refs[1].v)) < 120 ? "end" : "middle");
+    });
+    el("line", { x1: x(0), x2: x(0), y1: top - 4, y2: H, class: "base" }, svg);
+
+    [...com, ...sem].forEach((it, k) => {
+      const y0 = top + k * rowH;
+      txt(svg, labelW - 8, y0 + 16, it.nome, it.alvo ? "val" : "lbl", "end");
+      if (it.valor == null) {
+        txt(svg, x(0) + 6, y0 + 16, "sem dado", "tick", "start");
+      } else {
+        const v = it.valor;
+        const fill = it.alvo ? destaque : outros;
+        if (v >= 0) el("path", { d: hbarPath(x(0), y0 + 4, x(v), 18), fill }, svg);
+        else el("path", { d: hbarPath(x(0), y0 + 4, x(0) + (x(0) - x(v)), 18), fill, transform: `translate(${2 * x(0)},0) scale(-1,1)` }, svg);
+        txt(svg, v >= 0 ? x(v) + 6 : x(v) - 6, y0 + 16, fmt(v), it.alvo ? "val" : "tick", v >= 0 ? "start" : "end");
+      }
+      const hit = el("rect", { x: 0, y: y0, width: W, height: rowH, class: "hit" }, svg);
+      bindTip(hit, `<strong>${it.nome}</strong>${it.valor == null ? "sem dado" : fmt(it.valor)}${it.extra ? `<br><span class="muted">${it.extra}</span>` : ""}`);
+    });
+  }
+
+  const METRICAS = [
+    { k: "pessoal_pct", nome: "Gasto com pessoal", desc: "despesa com pessoal do Executivo, % da Receita Corrente Líquida", fmt: pct, melhor: "menor", limite: { v: 54, label: "Teto 54%" } },
+    { k: "resultado_pct", nome: "Resultado do orçamento", desc: "receita menos despesa empenhada, % da receita", fmt: pct, melhor: "maior" },
+    { k: "caixa_hab", nome: "Caixa por habitante", desc: "caixa após restos a pagar, em reais por habitante", fmt: reais, melhor: "maior" },
+    { k: "dcl_pct", nome: "Dívida", desc: "dívida consolidada líquida, % da Receita Corrente Líquida (limite 120%)", fmt: pct, melhor: "menor" },
+    { k: "tributaria_pct", nome: "Arrecadação própria", desc: "impostos, taxas e contribuições, % da receita corrente", fmt: pct, melhor: "maior" },
+    { k: "rcl_hab", nome: "Receita por habitante", desc: "Receita Corrente Líquida por habitante", fmt: reais, melhor: null },
+    { k: "ensino_pct", nome: "Educação", desc: "aplicação em ensino segundo o TCE-SP, % da receita de impostos", fmt: pct, melhor: null, limite: { v: 25, label: "Mínimo 25%" } },
+    { k: "saude_pct", nome: "Saúde", desc: "aplicação em saúde segundo o TCE-SP, % da receita de impostos", fmt: pct, melhor: null, limite: { v: 15, label: "Mínimo 15%" } },
+  ];
+  let grupo = "regiao";
+  let metrica = METRICAS[0].k;
+  const mediana = (xs) => {
+    const s = [...xs].sort((a, b) => a - b);
+    const n = s.length;
+    return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : null;
+  };
+
+  function renderComparacao() {
+    const C = D.comparacao;
+    if (!C) { document.getElementById("sec-comparacao").hidden = true; return; }
+    const m = METRICAS.find((x) => x.k === metrica);
+    const lista = C.municipios.filter((x) => x.alvo || x.grupos.includes(grupo));
+    const itens = lista.map((x) => ({
+      nome: x.nome, alvo: x.alvo, valor: x[m.k],
+      extra: [x.populacao ? `${nf0.format(x.populacao)} habitantes` : "",
+        m.k === "saude_pct" && x.saude_pct_siops != null ? `SIOPS: ${pct(x.saude_pct_siops)}` : ""].filter(Boolean).join(" · "),
+    }));
+    // ordena do "melhor" para o "pior"; sem direção definida, do maior para o menor
+    itens.sort((a, b) => (a.valor == null) - (b.valor == null) || (m.melhor === "menor" ? a.valor - b.valor : b.valor - a.valor));
+    const vals = itens.filter((i) => i.valor != null && !i.alvo).map((i) => i.valor);
+    const med = mediana(vals);
+    const refs = [];
+    if (med != null) refs.push({ v: med, label: `Mediana ${m.fmt(med)}` });
+    if (m.limite) refs.push(m.limite);
+
+    const fig = document.getElementById("c-comparacao");
+    ranking(fig, { itens, fmt: m.fmt, refs });
+    tabela(fig, ["Município", m.nome], itens.map((i) => [i.nome, i.valor == null ? "sem dado" : m.fmt(i.valor)]));
+
+    const alvo = itens.find((i) => i.alvo);
+    const comDado = itens.filter((i) => i.valor != null);
+    const pos = comDado.indexOf(alvo) + 1;
+    const nomeGrupo = grupo === "regiao" ? "cidades da região" : "cidades do mesmo porte";
+    const el2 = document.getElementById("leitura-comparacao");
+    if (!alvo || alvo.valor == null) { el2.textContent = ""; return; }
+    const rel = med == null ? "" : alvo.valor > med ? "acima" : alvo.valor < med ? "abaixo" : "igual";
+    el2.innerHTML = `<strong>${m.nome}</strong> (${m.desc}): Mogi Guaçu tem <strong>${m.fmt(alvo.valor)}</strong>, ` +
+      `${rel === "igual" ? "igual à" : `${rel} da`} mediana das ${nomeGrupo} (${m.fmt(med)})` +
+      (m.melhor ? `, ${pos}º lugar entre ${comDado.length}, do ${m.melhor === "menor" ? "menor para o maior" : "maior para o menor"}.` : ".");
+  }
+
+  function controlesComparacao() {
+    const box = document.getElementById("ctl-metrica");
+    box.innerHTML = `<span>Indicador:</span>${METRICAS.map((m) => `<button type="button" data-metrica="${m.k}" aria-pressed="${m.k === metrica}">${m.nome}</button>`).join("")}`;
+    box.querySelectorAll("[data-metrica]").forEach((b) => b.addEventListener("click", () => {
+      metrica = b.dataset.metrica;
+      box.querySelectorAll("[data-metrica]").forEach((o) => o.setAttribute("aria-pressed", String(o === b)));
+      renderComparacao();
+    }));
+    document.querySelectorAll("[data-grupo]").forEach((b) => b.addEventListener("click", () => {
+      grupo = b.dataset.grupo;
+      document.querySelectorAll("[data-grupo]").forEach((o) => o.setAttribute("aria-pressed", String(o === b)));
+      renderComparacao();
+    }));
+    const C = D.comparacao;
+    if (C) {
+      document.getElementById("nota-comparacao").textContent =
+        `Região: ${C.municipios.filter((x) => x.grupos.includes("regiao")).map((x) => x.nome).join(", ")}. ` +
+        `Mesmo porte: ${C.criterios.porte[0].toLowerCase()}${C.criterios.porte.slice(1)}. A linha vertical marca a mediana do grupo (sem contar Mogi Guaçu) e, quando existe, o limite legal.`;
+    }
+  }
+
+  function renderPareceres() {
+    const P = D.pareceres || [];
+    const box = document.getElementById("pareceres");
+    box.innerHTML = [...P].reverse().map((p) => {
+      const ok = p.parecer.toLowerCase().startsWith("favor");
+      return `<li><span class="ano">${p.ano}</span>${status(ok ? "good" : "critical", p.parecer)}
+        ${p.voto ? `<a href="${p.voto}" rel="noopener">Voto (PDF)</a>` : ""}</li>`;
+    }).join("");
+    document.querySelectorAll("[data-parecer-ultimo]").forEach((n) => { n.textContent = P.length ? P[P.length - 1].ano : "—"; });
   }
 
   // ---------- status ----------
@@ -356,15 +484,19 @@
 
     const fM = document.getElementById("c-minimos");
     linhas(fM, {
-      anos: D.anos,
+      anos: fechados,
       series: [
-        { name: "Educação (mínimo 25%)", valor: (a) => a.educacao_pct, color: cssVar("--series-1") },
-        { name: "Saúde (mínimo 15%)", valor: (a) => a.saude_pct, color: cssVar("--series-2") },
+        { name: "Educação, TCE-SP (mínimo 25%)", valor: (a) => a.educacao_pct, color: cssVar("--series-1"), fonte: "educacao_pct" },
+        { name: "Saúde, TCE-SP (mínimo 15%)", valor: (a) => a.saude_pct, color: cssVar("--series-2"), fonte: "saude_pct" },
+        { name: "Saúde, SIOPS", valor: (a) => a.saude_pct_siops, color: cssVar("--series-3") },
       ],
       limites: [{ y: 25, label: "Mín. educação" }, { y: 15, label: "Mín. saúde" }],
+      limitesAbaixo: true,
       yMax: 40,
     });
-    tabela(fM, ["Ano", "Educação", "Saúde"], D.anos.map((a) => [a.ano, pct(a.educacao_pct), pct(a.saude_pct)]));
+    tabela(fM, ["Ano", "Educação (TCE-SP)", "Saúde (TCE-SP)", "Saúde (SIOPS)", "Fonte em 2015"],
+      fechados.map((a) => [a.ano, pct(a.educacao_pct), pct(a.saude_pct), pct(a.saude_pct_siops),
+        Object.values(a.fonte_minimos || {}).includes("RREO") ? "RREO (Siconfi)" : "—"]));
 
     const fR = document.getElementById("c-rcl");
     const percap = (a) => (a.rcl && a.populacao ? money(a, a.rcl) / a.populacao : null);
@@ -408,13 +540,16 @@
       barrasH(fFo, { itens: fo.top_terceiros.map((t) => ({ nome: t.nome, valor: t.pago, extra: t.doc ? `CNPJ ${t.doc.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5")}` : "" })), color: cssVar("--series-1") });
       tabela(fFo, ["Favorecido", "CNPJ", "Pago"], fo.top_terceiros.map((t) => [t.nome, t.doc || "—", mi(t.pago)]));
       const fPu = document.getElementById("c-publicos");
-      barrasH(fPu, { itens: fo.top_publicos.map((t) => ({ nome: t.nome, valor: t.pago })), color: cssVar("--neutral") === "" ? "#c3c2b7" : cssVar("--text-muted") });
+      barrasH(fPu, { itens: fo.top_publicos.map((t) => ({ nome: t.nome, valor: t.pago })), color: cssVar("--text-muted") });
     }
+    renderComparacao();
+    renderPareceres();
   }
 
   function textos() {
     document.querySelectorAll("[data-ano-fechado]").forEach((n) => { n.textContent = ult.ano; });
     document.querySelectorAll("[data-ano-parcial]").forEach((n) => { n.textContent = parcial ? parcial.ano : "—"; });
+    document.querySelectorAll("[data-ano-comparacao]").forEach((n) => { n.textContent = D.comparacao?.ano ?? ""; });
     document.querySelectorAll("[data-ano-fornecedores]").forEach((n) => { n.textContent = D.fornecedores?.ano ?? ""; });
     document.querySelectorAll("[data-gerado]").forEach((n) => { n.textContent = new Date(`${D.gerado_em}T12:00`).toLocaleDateString("pt-BR"); });
     document.getElementById("fontes").innerHTML = D.fontes.map((f) => `<li><a href="${f.url}" rel="noopener">${f.nome}</a></li>`).join("");
@@ -430,5 +565,8 @@
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
 
   textos();
+  controlesComparacao();
   render();
+  // Link direto para uma seção (#h-comparacao): rola só depois que os gráficos têm altura.
+  if (location.hash) document.querySelector(location.hash)?.scrollIntoView();
 })();

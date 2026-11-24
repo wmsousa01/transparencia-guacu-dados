@@ -123,3 +123,20 @@ th { color: var(--text-secondary); font-weight: 600; }
 .metodo ul { padding-left: 20px; color: var(--text-secondary); max-width: 72ch; }
 .metodo li { margin-bottom: 8px; }
 .metodo a { color: var(--series-1); }
+
+/* Comparação */
+#ctl-metrica { margin: 8px 0 4px; }
+#ctl-grupo { margin-top: 4px; }
+.leitura { font-size: 17px; margin: 12px 0; max-width: 70ch; }
+.leitura strong { font-weight: 600; }
+
+/* Pareceres */
+.pareceres { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.pareceres li { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.pareceres .ano { font-weight: 600; display: block; }
+.pareceres .status { margin: 4px 0 2px; }
+.pareceres a { font-size: 13px; color: var(--series-1); }
+
+/* Texto sobre linhas de referência: contorno na cor do fundo para não ser cortado */
+.chart .val, .chart .tick, .chart .lbl { paint-order: stroke; stroke: var(--surface-1); stroke-width: 3px; stroke-linejoin: round; }
+.pareceres a { display: block; }

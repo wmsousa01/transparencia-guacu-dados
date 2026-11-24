@@ -57,7 +57,8 @@
   <section aria-labelledby="h-minimos">
     <h2 id="h-minimos">Saúde e educação: os mínimos constitucionais</h2>
     <p class="nota">A Constituição obriga o município a aplicar ao menos 15% da receita de impostos em saúde e 25% em educação.
-      Os anos sem ponto não trazem esse dado no Siconfi. Ele existe no SIOPS e no SIOPE, que ainda vamos incorporar.</p>
+      Usamos o cálculo do Tribunal de Contas, o mesmo que ele usa para julgar as contas. Para a saúde mostramos também o SIOPS, o sistema do Ministério da Saúde.
+      Os dois contam despesas de formas diferentes, e em alguns anos a distância é grande.</p>
     <figure class="chart" id="c-minimos"></figure>
   </section>
 
@@ -90,6 +91,26 @@
     </details>
   </section>
 
+  <section aria-labelledby="h-comparacao" id="sec-comparacao">
+    <h2 id="h-comparacao">Como Mogi Guaçu se compara em <span data-ano-comparacao></span></h2>
+    <p class="nota" id="nota-comparacao"></p>
+    <div class="controles" role="group" aria-label="Grupo de comparação" id="ctl-grupo">
+      <span>Comparar com:</span>
+      <button type="button" data-grupo="regiao" aria-pressed="true">cidades da região</button>
+      <button type="button" data-grupo="porte" aria-pressed="false">cidades do mesmo porte</button>
+    </div>
+    <div class="controles" role="group" aria-label="Indicador" id="ctl-metrica"></div>
+    <p class="leitura" id="leitura-comparacao"></p>
+    <figure class="chart" id="c-comparacao"></figure>
+  </section>
+
+  <section aria-labelledby="h-pareceres">
+    <h2 id="h-pareceres">O que o Tribunal de Contas decidiu</h2>
+    <p class="nota">Parecer prévio do TCE-SP sobre as contas anuais da Prefeitura. Quem julga em definitivo é a Câmara Municipal.
+      O arquivo público do Tribunal só vai até o exercício de <span data-parecer-ultimo></span>. Os anos seguintes ainda não foram publicados nesse conjunto de dados.</p>
+    <ol class="pareceres" id="pareceres"></ol>
+  </section>
+
   <section aria-labelledby="h-metodo" class="metodo">
     <h2 id="h-metodo">De onde saem esses números</h2>
     <ul id="fontes"></ul>
@@ -97,6 +118,8 @@
       <li><strong>Correção pela inflação:</strong> valores trazidos a preços médios de <span data-ano-fechado></span> pelo IPCA. Use o botão no topo para ver os valores da época.</li>
       <li><strong>Ano corrente:</strong> <span data-ano-parcial></span> aparece só onde o indicador já é anual (pessoal e dívida usam os últimos 12 meses). Receita e despesa de um ano incompleto não são comparáveis, porque a despesa é empenhada no começo do ano e a receita entra mês a mês.</li>
       <li><strong>Valores calculados por nós:</strong> em alguns anos o relatório traz o valor mas não o percentual, ou traz o caixa antes de descontar os restos a pagar. Nesses casos calculamos com os números do próprio relatório, e o ponto aparece marcado como "calculado" ao passar o mouse.</li>
+      <li><strong>Saúde e educação:</strong> de 2016 em diante, o percentual é o calculado pelo TCE-SP (despesa empenhada). Em 2015, que o Tribunal não publica, usamos o RREO do Siconfi. O SIOPS é mostrado ao lado só para conferência. O SIOPE (educação, do FNDE) está com a API fora do ar e a consulta pública exige captcha, por isso não foi usado.</li>
+      <li><strong>Comparação:</strong> todos os municípios no último ano fechado, em valores da época (o mesmo ano para todos, então não precisa corrigir pela inflação). Pessoal, dívida, caixa e receita vêm do Siconfi; resultado, ensino e saúde, do TCE-SP. Município que não entregou o relatório aparece como "sem dado".</li>
       <li><strong>Caixa:</strong> é o total de todas as fontes de recurso. Uma fonte com sobra pode esconder outra no vermelho. O detalhe por fonte está no Anexo 5 do RGF.</li>
       <li><strong>Fornecedores:</strong> soma dos pagamentos registrados no AUDESP, sem a própria Prefeitura (folha e transferências internas). A separação entre "terceiros" e "órgãos públicos" é feita pelo nome do favorecido e pode errar.</li>
     </ul>
