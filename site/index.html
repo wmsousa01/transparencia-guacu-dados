@@ -27,10 +27,11 @@
 <nav class="indice" aria-label="Seções da página">
   <ul>
     <li><a href="#resumo">Resumo</a></li>
+    <li><a href="#cap-caminho">Caminho do dinheiro</a></li>
     <li><a href="#cap-contas">Contas do ano</a></li>
     <li><a href="#cap-limites">Folha e dívida</a></li>
     <li><a href="#cap-minimos">Saúde e educação</a></li>
-    <li><a href="#cap-dinheiro">Entradas e gastos</a></li>
+    <li><a href="#cap-dinheiro">Arrecadação</a></li>
     <li><a href="#sec-comparacao">Comparação</a></li>
     <li><a href="#cap-fiscalizacao">Fiscalização</a></li>
     <li><a href="#glossario">Glossário</a></li>
@@ -56,9 +57,54 @@
     </div>
   </section>
 
+  <!-- caminho do dinheiro -->
+  <div class="capitulo" id="cap-caminho">
+    <p class="cap-num"><span class="cap-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h6c4 0 4 12 8 12h4"/><path d="M3 18h6c4 0 4-12 8-12h4"/></svg></span><span>1 · O caminho do dinheiro</span></p>
+
+    <section class="bloco" aria-labelledby="h-fluxo">
+      <h2 id="h-fluxo">De onde vem e para onde vai cada real</h2>
+      <p class="resposta" id="r-fluxo" aria-live="polite"></p>
+      <p class="como-ler"><b>Como ler:</b> à esquerda, de onde o dinheiro veio. No meio, o caixa da Prefeitura. À direita, as áreas em que foi gasto. Quanto mais grossa a faixa, mais dinheiro. Passe o dedo ou o mouse numa faixa para ver o valor, ou toque ▶ para ver os anos passando.</p>
+      <div class="tempo">
+        <button type="button" class="tocar" id="tocar-fluxo" aria-pressed="false" aria-label="Reproduzir a evolução ano a ano"><span aria-hidden="true">▶</span></button>
+        <div class="tempo-trilho">
+          <label for="ano-fluxo">Ano <output id="ano-fluxo-out" for="ano-fluxo"></output></label>
+          <input type="range" id="ano-fluxo" step="1">
+          <div class="tempo-limites" aria-hidden="true"><span id="ano-fluxo-min"></span><span id="ano-fluxo-max"></span></div>
+        </div>
+      </div>
+      <figure class="chart chart-fluxo" id="c-fluxo"></figure>
+      <details class="tabela" id="tabela-fluxo"></details>
+      <details class="entenda"><summary>Entenda este gráfico</summary>
+        <p>Do lado das entradas, a receita arrecadada no ano, já sem as deduções. Do lado das saídas, a despesa <button type="button" class="termo" data-termo="liquidado">liquidada</button> por área de governo.
+          Quando a Prefeitura gastou mais do que arrecadou, a diferença aparece à esquerda como "saldo de anos anteriores". Quando sobrou, aparece à direita como "não gasto no ano".
+          Os valores seguem o botão do topo: corrigidos pela inflação ou da época.</p>
+      </details>
+    </section>
+
+    <section class="bloco" aria-labelledby="h-recibo">
+      <h2 id="h-recibo">Seu recibo: para onde vai o seu imposto</h2>
+      <p class="como-ler">Digite quanto você paga por ano à Prefeitura (IPTU, ISS, taxas) e veja como esse valor se divide entre as áreas, na mesma proporção dos gastos de <span data-ano-fechado></span>.</p>
+      <div class="recibo-grade">
+        <form class="recibo-form" onsubmit="return false">
+          <label for="valor-imposto">Quanto você paga por ano</label>
+          <div class="campo"><span aria-hidden="true">R$</span><input id="valor-imposto" inputmode="decimal" autocomplete="off" value="1.200"></div>
+          <div class="atalhos" role="group" aria-label="Valores de exemplo">
+            <button type="button" data-imposto="500">R$ 500</button>
+            <button type="button" data-imposto="1200">R$ 1.200</button>
+            <button type="button" data-imposto="3000">R$ 3.000</button>
+          </div>
+          <p class="sr-only" id="recibo-resumo" aria-live="polite"></p>
+          <p class="nota-recibo">O imposto não tem destino carimbado: ele entra no caixa geral junto com os repasses. Por isso o recibo é uma divisão proporcional, não o caminho exato de cada real.</p>
+        </form>
+        <div class="recibo" id="recibo"></div>
+      </div>
+    </section>
+  </div>
+
   <!-- 1 -->
   <div class="capitulo" id="cap-contas">
-    <p class="cap-num"><span class="cap-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h15a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V7zm0 0V6a2 2 0 0 1 2-2h11"/><circle cx="16.5" cy="13.5" r="1.2"/></svg></span><span>1 · As contas do ano</span></p>
+    <p class="cap-num"><span class="cap-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h15a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V7zm0 0V6a2 2 0 0 1 2-2h11"/><circle cx="16.5" cy="13.5" r="1.2"/></svg></span><span>2 · As contas do ano</span></p>
 
     <section class="bloco" aria-labelledby="h-resultado">
       <h2 id="h-resultado">A conta do ano fecha?</h2>
@@ -85,7 +131,7 @@
 
   <!-- 2 -->
   <div class="capitulo" id="cap-limites">
-    <p class="cap-num"><span class="cap-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/></svg></span><span>2 · Folha e dívida: os limites da lei</span></p>
+    <p class="cap-num"><span class="cap-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/></svg></span><span>3 · Folha e dívida: os limites da lei</span></p>
 
     <section class="bloco" aria-labelledby="h-pessoal">
       <h2 id="h-pessoal">Quanto da receita vai para salários</h2>
@@ -104,7 +150,7 @@
 
   <!-- 3 -->
   <div class="capitulo" id="cap-minimos">
-    <p class="cap-num"><span class="cap-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></svg></span><span>3 · Saúde e educação</span></p>
+    <p class="cap-num"><span class="cap-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></svg></span><span>4 · Saúde e educação</span></p>
     <section class="bloco" aria-labelledby="h-minimos">
       <h2 id="h-minimos">A cidade aplica o mínimo que a Constituição exige?</h2>
       <p class="resposta" id="r-minimos"></p>
@@ -120,27 +166,13 @@
 
   <!-- 4 -->
   <div class="capitulo" id="cap-dinheiro">
-    <p class="cap-num"><span class="cap-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/></svg></span><span>4 · De onde vem e para onde vai o dinheiro</span></p>
+    <p class="cap-num"><span class="cap-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/></svg></span><span>5 · Arrecadação e fornecedores</span></p>
 
     <section class="bloco" aria-labelledby="h-rcl">
       <h2 id="h-rcl">Quanto a Prefeitura arrecada por morador</h2>
       <p class="resposta" id="r-rcl"></p>
       <p class="como-ler"><b>Como ler:</b> a receita corrente líquida dividida pela população estimada de cada ano.</p>
       <figure class="chart" id="c-rcl"></figure>
-    </section>
-
-    <section class="bloco" aria-labelledby="h-origem">
-      <h2 id="h-origem">De onde vem o dinheiro em <span data-ano-fechado></span></h2>
-      <p class="resposta" id="r-origem"></p>
-      <p class="como-ler"><b>Como ler:</b> a barra inteira é tudo o que entrou no ano. Cada cor é uma origem. A arrecadação própria (IPTU, ISS, ITBI, taxas) é a parte que o município controla.</p>
-      <figure class="chart" id="c-origem"></figure>
-    </section>
-
-    <section class="bloco" aria-labelledby="h-funcao">
-      <h2 id="h-funcao">Para onde vai o dinheiro em <span data-ano-fechado></span></h2>
-      <p class="resposta" id="r-funcao"></p>
-      <p class="como-ler"><b>Como ler:</b> despesa <button type="button" class="termo" data-termo="liquidado">liquidada</button> (serviço entregue ou bem recebido) por área de governo, valores da época.</p>
-      <figure class="chart" id="c-funcao"></figure>
     </section>
 
     <section class="bloco" aria-labelledby="h-fornecedores">
@@ -157,7 +189,7 @@
 
   <!-- 5 -->
   <div class="capitulo">
-    <p class="cap-num"><span class="cap-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V10M12 20V4M19 20v-7"/></svg></span><span>5 · Comparação</span></p>
+    <p class="cap-num"><span class="cap-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V10M12 20V4M19 20v-7"/></svg></span><span>6 · Comparação</span></p>
     <section class="bloco" aria-labelledby="h-comparacao" id="sec-comparacao">
       <h2 id="h-comparacao">Como Mogi Guaçu se sai perto de cidades parecidas</h2>
       <p class="resposta" id="leitura-comparacao" aria-live="polite"></p>
@@ -179,7 +211,7 @@
 
   <!-- 6 -->
   <div class="capitulo" id="cap-fiscalizacao">
-    <p class="cap-num"><span class="cap-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6l8-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span><span>6 · Fiscalização</span></p>
+    <p class="cap-num"><span class="cap-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6l8-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span><span>7 · Fiscalização</span></p>
     <section class="bloco" aria-labelledby="h-pareceres">
       <h2 id="h-pareceres">O que o Tribunal de Contas decidiu</h2>
       <p class="resposta" id="r-pareceres"></p>

@@ -300,3 +300,108 @@ thead th { color: var(--text-secondary); font-weight: 600; }
   .resposta { border-left-color: CanvasText; }
   .controles button[aria-pressed="true"] { outline: 2px solid Highlight; }
 }
+
+/* ============================================================
+   Movimento: gráficos se desenham ao entrar na tela
+   ============================================================ */
+.chart .bar { transform-box: fill-box; transition: transform .7s cubic-bezier(.2, .7, .2, 1); }
+.chart .bar.pos { transform-origin: 50% 100%; }
+.chart .bar.neg { transform-origin: 50% 0; }
+.chart .hbar { transform-box: fill-box; transform-origin: 0 50%; transition: transform .8s cubic-bezier(.2, .7, .2, 1); }
+.chart .traco { stroke-dasharray: 1; stroke-dashoffset: 0; transition: stroke-dashoffset 1.4s cubic-bezier(.3, .6, .2, 1); }
+.chart .ponto, .chart text.val { transition: opacity .5s ease .7s; }
+.anima:not(.visto) .bar { transform: scaleY(0); }
+.anima:not(.visto) .hbar { transform: scaleX(0); }
+.anima:not(.visto) .traco { stroke-dashoffset: 1; }
+.anima:not(.visto) .ponto, .anima:not(.visto) text.val { opacity: 0; }
+
+/* Enxame da comparação */
+.chart .dot { transition: transform .7s cubic-bezier(.2, .7, .2, 1), opacity .4s; }
+.chart .dot .hit { fill: transparent; }
+.chart .dot .hit:hover, .chart .dot .hit.foco { fill: var(--hl); }
+
+/* ============================================================
+   O caminho do dinheiro
+   ============================================================ */
+.sankey .link { opacity: .5; transition: opacity .2s; cursor: pointer; }
+.sankey .link.sai { fill: var(--neutral); opacity: .6; }
+.sankey.foco .link { opacity: .12; }
+.sankey.foco .link.on { opacity: .9; }
+.sankey .rot { transition: opacity .3s; }
+.sankey text.n { fill: var(--text-primary); font-weight: 600; }
+.sankey .no { transition: opacity .3s; }
+.chart-fluxo .hit { cursor: pointer; }
+
+.tempo {
+  display: flex; align-items: center; gap: 14px; margin: 0 0 14px; padding: 12px 16px;
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow);
+}
+.tocar {
+  flex: none; width: 48px; height: 48px; border-radius: 50%; border: 0; cursor: pointer;
+  background: var(--brand); color: #fff; font-size: 17px; display: grid; place-items: center;
+  box-shadow: var(--shadow-lg);
+}
+.tocar:hover { background: var(--brand-2); }
+.tocar[aria-pressed="true"] { background: var(--series-1); }
+.tempo-trilho { flex: 1; min-width: 0; }
+.tempo-trilho label { display: block; font-size: 14px; font-weight: 600; color: var(--text-secondary); }
+.tempo-trilho output { font-size: 22px; font-weight: 700; color: var(--text-primary); margin-left: 6px; font-variant-numeric: tabular-nums; }
+.tempo-limites { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
+input[type="range"] { width: 100%; accent-color: var(--series-1); height: 32px; margin: 0; cursor: pointer; }
+#tabela-fluxo table + table { margin-top: 12px; }
+
+/* ============================================================
+   Seu recibo
+   ============================================================ */
+.recibo-grade { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 20px; align-items: start; }
+@media (max-width: 760px) { .recibo-grade { grid-template-columns: 1fr; } }
+.recibo-form label { display: block; font-weight: 700; margin-bottom: 6px; }
+.campo {
+  display: flex; align-items: center; gap: 8px; background: var(--surface-1); border: 2px solid var(--border);
+  border-radius: 14px; padding: 6px 14px; box-shadow: var(--shadow);
+}
+.campo:focus-within { border-color: var(--series-1); }
+.campo span { font-size: 22px; font-weight: 600; color: var(--text-secondary); }
+.campo input {
+  border: 0; background: transparent; font: inherit; font-size: 30px; font-weight: 700; width: 100%; min-width: 0;
+  color: var(--text-primary); font-variant-numeric: tabular-nums; padding: 4px 0;
+}
+.campo input:focus { outline: none; }
+.atalhos { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
+.atalhos button {
+  font: inherit; font-size: 15px; padding: 8px 14px; min-height: 40px; border-radius: 999px; cursor: pointer;
+  background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border);
+}
+.atalhos button:hover { border-color: var(--text-secondary); }
+.nota-recibo { font-size: 14px; color: var(--text-secondary); margin: 14px 0 0; }
+
+.recibo {
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-lg);
+  padding: 18px 20px; position: relative;
+  /* serrilhado de cupom fiscal na base */
+  -webkit-mask: radial-gradient(circle 6px at 50% 100%, transparent 98%, #000) 0 0 / 16px 100% repeat-x;
+          mask: radial-gradient(circle 6px at 50% 100%, transparent 98%, #000) 0 0 / 16px 100% repeat-x;
+  padding-bottom: 26px;
+}
+.recibo-topo, .recibo-total { display: flex; justify-content: space-between; gap: 12px; margin: 0; }
+.recibo-topo { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-secondary); padding-bottom: 10px; border-bottom: 2px dashed var(--border); }
+.recibo ul { list-style: none; margin: 0; padding: 6px 0; }
+.recibo li { display: grid; grid-template-columns: minmax(0, 11fr) minmax(0, 6fr) auto; gap: 10px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--grid); }
+.r-nome { font-weight: 600; font-size: 15px; line-height: 1.3; }
+.r-nome small { display: block; font-weight: 400; font-size: 12.5px; color: var(--text-muted); }
+.r-barra { height: 8px; background: var(--grid); border-radius: 4px; overflow: hidden; }
+.r-barra i { display: block; height: 100%; background: var(--series-1); border-radius: 4px; transform-origin: 0 50%; transition: transform .8s cubic-bezier(.2, .7, .2, 1); }
+.anima:not(.visto) .r-barra i { transform: scaleX(0); }
+.r-valor { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.recibo-total { padding-top: 10px; border-top: 2px dashed var(--border); font-size: 18px; font-weight: 700; }
+@media (max-width: 480px) {
+  .recibo li { grid-template-columns: minmax(0, 1fr) auto; }
+  .r-barra { grid-column: 1 / -1; grid-row: 2; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart .bar, .chart .hbar, .chart .traco, .chart .ponto, .chart text.val, .chart .dot, .r-barra i, .sankey .link { transition: none !important; }
+  .anima .bar, .anima .hbar, .anima .r-barra i { transform: none !important; }
+  .anima .traco { stroke-dashoffset: 0 !important; }
+  .anima .ponto, .anima text.val { opacity: 1 !important; }
+}

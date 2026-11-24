@@ -67,6 +67,32 @@
   // Ano no eixo: em telas estreitas vira '15, '16… para não encavalar.
   const rotuloAno = (a, largura) => `${largura < 40 ? `’${String(a.ano).slice(2)}` : a.ano}${a.parcial ? "*" : ""}`;
 
+  // ---------- movimento ----------
+  const semMovimento = matchMedia("(prefers-reduced-motion: reduce)");
+  // Gráficos começam "recolhidos" e se desenham quando entram na tela (uma vez só).
+  function animarAoVer() {
+    if (semMovimento.matches || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver((ents) => ents.forEach((e) => {
+      if (e.isIntersecting) { e.target.classList.add("visto"); io.unobserve(e.target); }
+    }), { rootMargin: "0px 0px -10% 0px" });
+    document.querySelectorAll(".chart, .recibo").forEach((f) => { f.classList.add("anima"); io.observe(f); });
+  }
+  // Números dos cartões contam do zero até o valor na primeira exibição.
+  let contou = false;
+  function contar(box) {
+    if (contou || semMovimento.matches) return;
+    contou = true;
+    const nums = [...box.querySelectorAll("[data-n]")];
+    const t0 = performance.now();
+    const passo = (t) => {
+      const p = Math.min(1, (t - t0) / 1000);
+      const e = 1 - (1 - p) ** 3;
+      nums.forEach((n) => { const v = +n.dataset.n * e; n.textContent = n.dataset.f === "pct" ? pct(v) : mi(v); });
+      if (p < 1) requestAnimationFrame(passo);
+    };
+    requestAnimationFrame(passo);
+  }
+
   // ---------- tooltip ----------
   const tip = document.getElementById("tooltip");
   const showTipAt = (cx, cy, html) => {
@@ -181,7 +207,7 @@
         alvos.push(bindTip(hit, () => `<strong>${a.ano}</strong>sem dado${tipExtra ? `<br><span class="muted">${tipExtra(a)}</span>` : ""}`));
         return;
       }
-      el("path", { d: barPath(cx - bw / 2, y(0), y(v), bw), fill: v >= 0 ? pos : neg }, svg);
+      el("path", { d: barPath(cx - bw / 2, y(0), y(v), bw), fill: v >= 0 ? pos : neg, class: `bar ${v >= 0 ? "pos" : "neg"}`, style: `transition-delay:${i * 45}ms` }, svg);
       if (i === iMin || i === iMax || i === anos.length - 1) {
         txt(svg, cx, v >= 0 ? y(v) - 6 : y(v) + 14, mi(v).replace("R$ ", ""), "val");
       }
@@ -233,11 +259,11 @@
         d += `${pen ? "L" : "M"}${x(i)},${y(v)}`;
         pen = true;
       });
-      el("path", { d, fill: "none", stroke: s.color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
+      el("path", { d, fill: "none", stroke: s.color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round", pathLength: 1, class: "traco" }, svg);
       anos.forEach((a, i) => {
         const v = s.valor(a);
         if (v == null) return;
-        const c = el("circle", { cx: x(i), cy: y(v), r: 4, fill: a.parcial ? surface : s.color, stroke: a.parcial ? s.color : surface, "stroke-width": 2 }, svg);
+        const c = el("circle", { cx: x(i), cy: y(v), r: 4, fill: a.parcial ? surface : s.color, stroke: a.parcial ? s.color : surface, "stroke-width": 2, class: "ponto" }, svg);
         pontos.push({ i, s, v, c });
       });
       // rótulo direto no último ponto válido
@@ -284,7 +310,7 @@
       const y0 = k * rowH + 3;
       const nome = it.nome.length > maxChars ? `${it.nome.slice(0, maxChars - 1).trim()}…` : it.nome;
       txt(svg, labelW - 8, y0 + 16, nome, "lbl", "end");
-      el("path", { d: hbarPath(labelW, y0 + 2, x(it.valor), 20), fill: color }, svg);
+      el("path", { d: hbarPath(labelW, y0 + 2, x(it.valor), 20), fill: color, class: "hbar", style: `transition-delay:${k * 40}ms` }, svg);
       txt(svg, x(it.valor) + 6, y0 + 16, fmt(it.valor), "val", "start");
       const hit = el("rect", { x: 0, y: y0 - 3, width: W, height: rowH, class: "hit" }, svg);
       alvos.push(bindTip(hit, `<strong>${it.nome}</strong>${fmt(it.valor)}${it.extra ? `<br><span class="muted">${it.extra}</span>` : ""}`));
@@ -292,73 +318,413 @@
     navegavel(fig, svg, alvos);
   }
 
-  // ---------- barra segmentada (composição) ----------
-  function segmentada(fig, { partes }) {
+  // ---------- enxame (comparação): cada cidade é uma bolinha numa régua ----------
+  // As bolinhas lembram a posição anterior e deslizam até a nova quando o indicador muda.
+  function enxame(fig, { itens, fmt, refs = [] }) {
+    const antes = fig._pos || new Map();
     fig.innerHTML = "";
-    legenda(fig, partes.map((p) => ({ name: p.nome, color: p.color })));
+    const destaque = cssVar("--series-1");
+    const outros = cssVar("--neutral");
+    const surface = cssVar("--surface-1");
+    legenda(fig, [{ name: "Mogi Guaçu", color: destaque }, { name: "Outras cidades", color: outros }]);
     const W = Math.max(fig.clientWidth - 32, 300);
-    const H = 28;
-    const total = partes.reduce((s, p) => s + p.valor, 0);
-    const gap = 2;
-    const usable = W - gap * (partes.length - 1);
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": partes.map((p) => `${p.nome} ${pct((100 * p.valor) / total)}`).join(", ") }, fig);
-    let x0 = 0;
-    const alvos = [];
-    partes.forEach((p) => {
-      const w = (p.valor / total) * usable;
-      el("rect", { x: x0, y: 0, width: w, height: H, rx: 4, fill: p.color }, svg);
-      const share = `${nf0.format((100 * p.valor) / total)}%`;
-      if (w > 44) txt(svg, x0 + 8, 18, share, "val", "start", { fill: p.ink || "#ffffff" });
-      const hit = el("rect", { x: x0, y: 0, width: w, height: H, class: "hit" }, svg);
-      alvos.push(bindTip(hit, `<strong>${p.nome}</strong>${mi(p.valor)} · ${pct((100 * p.valor) / total)}${p.det ? `<br><span class="muted">${p.det}</span>` : ""}`));
-      x0 += w + gap;
+    const estreito = W < 500;
+    const com = itens.filter((i) => i.valor != null);
+    const sem = itens.filter((i) => i.valor == null);
+    const r = estreito ? 7 : 9;
+    const m = { l: 16, r: 16, t: 50, b: 30 };
+    const vals = [...com.map((i) => i.valor), ...refs.map((x) => x.v)];
+    const ticks = niceTicks(Math.min(...vals), Math.max(...vals), estreito ? 4 : 6);
+    const lo = ticks[0];
+    const hi = ticks[ticks.length - 1];
+    const x = (v) => m.l + ((v - lo) / (hi - lo || 1)) * (W - m.l - m.r);
+    const pos = [];
+    [...com].sort((a, b) => a.valor - b.valor).forEach((it) => {
+      const px = x(it.valor);
+      const rr = it.alvo ? r + 2 : r;
+      let dy = 0;
+      for (let k = 0; k < 600; k++) {
+        const cand = k === 0 ? 0 : (k % 2 ? 1 : -1) * Math.ceil(k / 2);
+        if (pos.every((p) => Math.hypot(p.x - px, p.dy - cand) >= p.r + rr + 2)) { dy = cand; break; }
+      }
+      pos.push({ it, x: px, dy, r: rr });
     });
+    const amp = Math.max(r + 2, ...pos.map((p) => Math.abs(p.dy) + p.r));
+    const cy = m.t + amp;
+    const H = cy + amp + m.b;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}` }, fig);
+    ticks.forEach((t) => {
+      el("line", { x1: x(t), x2: x(t), y1: m.t - 6, y2: H - m.b + 4, class: "grid" }, svg);
+      txt(svg, x(t), H - 8, fmt(t), "tick");
+    });
+    const rs = [...refs].sort((a, b) => a.v - b.v);
+    rs.forEach((ref, k) => {
+      el("line", { x1: x(ref.v), x2: x(ref.v), y1: 18, y2: H - m.b + 4, class: "limit" }, svg);
+      const perto = rs.length > 1 && Math.abs(x(rs[0].v) - x(rs[1].v)) < 110;
+      const anchor = perto ? (k === 0 ? "end" : "start") : x(ref.v) < 60 ? "start" : x(ref.v) > W - 60 ? "end" : "middle";
+      txt(svg, x(ref.v) + (anchor === "end" ? -4 : anchor === "start" ? 4 : 0), 13, ref.label, "lbl", anchor);
+    });
+    const gDots = el("g", {}, svg);
+    const mover = [];
+    const porNome = new Map();
+    const novo = new Map();
+    pos.sort((a, b) => a.it.alvo - b.it.alvo).forEach((p) => {
+      const g = el("g", { class: "dot" }, gDots);
+      const para = [p.x, cy + p.dy];
+      const de = antes.get(p.it.nome);
+      g.style.transform = `translate(${(de || para)[0]}px, ${(de || para)[1]}px)`;
+      if (!de) g.style.opacity = "0";
+      el("circle", { r: p.r, fill: p.it.alvo ? destaque : outros, stroke: surface, "stroke-width": 2 }, g);
+      const hit = el("circle", { r: p.r + 5, class: "hit" }, g);
+      porNome.set(p.it.nome, bindTip(hit, `<strong>${p.it.nome}</strong>${fmt(p.it.valor)}${p.it.extra ? `<br><span class="muted">${p.it.extra}</span>` : ""}`));
+      novo.set(p.it.nome, para);
+      mover.push(() => { g.style.transform = `translate(${para[0]}px, ${para[1]}px)`; g.style.opacity = "1"; });
+      if (p.it.alvo) {
+        // rótulo de Mogi Guaçu numa faixa própria, com fio até a bolinha
+        const anchor = p.x < 90 ? "start" : p.x > W - 90 ? "end" : "middle";
+        const gl = el("g", { class: "dot" }, svg);
+        gl.style.transform = `translate(${de ? de[0] : p.x}px, 0px)`;
+        el("line", { x1: 0, x2: 0, y1: 36, y2: cy + p.dy - p.r - 2, stroke: destaque, "stroke-width": 1.5 }, gl);
+        txt(gl, 0, 32, `Mogi Guaçu ${fmt(p.it.valor)}`, "val", anchor);
+        mover.push(() => { gl.style.transform = `translate(${p.x}px, 0px)`; });
+      }
+    });
+    requestAnimationFrame(() => requestAnimationFrame(() => mover.forEach((f) => f())));
+    fig._pos = novo;
+    if (sem.length) {
+      const p = document.createElement("p");
+      p.className = "dica-grafico";
+      p.textContent = `Sem dado: ${sem.map((i) => i.nome).join(", ")}.`;
+      fig.appendChild(p);
+    }
+    navegavel(fig, svg, com.map((i) => porNome.get(i.nome)).filter(Boolean));
+  }
+
+  // ---------- o caminho do dinheiro (fluxo de Sankey, animado por ano) ----------
+  const ORIGENS = [
+    { k: "propria", nome: "Arrecadação própria", curto: "Própria", soma: ["impostos_taxas", "contribuicoes", "servicos", "patrimonial", "outras_correntes"], cor: "--series-1", det: "IPTU, ISS, ITBI, taxas e tarifas de serviços" },
+    { k: "estado", nome: "Repasses do Estado", curto: "Estado", soma: ["transf_estado"], cor: "--series-2", det: "Principalmente a parte da cidade no ICMS e no IPVA" },
+    { k: "uniao", nome: "Repasses da União", curto: "União", soma: ["transf_uniao"], cor: "--series-3", det: "Fundo de Participação dos Municípios, SUS e programas federais" },
+    { k: "outras", nome: "Fundeb e outros repasses", curto: "Fundeb e outros", soma: ["transf_outras"], cor: "--series-4", det: "Sobretudo o retorno do Fundeb, o fundo da educação básica" },
+    { k: "capital", nome: "Receitas de capital", curto: "Capital", soma: ["capital"], cor: "--series-5", det: "Convênios para obras, venda de bens e empréstimos" },
+  ];
+  const CURTO_AREA = {
+    "Encargos Especiais": "Encargos e dívida", "Assistência Social": "Assistência social", "Segurança Pública": "Segurança",
+    "Gestão Ambiental": "Meio ambiente", "Desporto e Lazer": "Esporte e lazer", "Ciência e Tecnologia": "Ciência e tecnologia",
+    "Previdência Social": "Previdência", "Legislativa": "Câmara Municipal",
+  };
+  const DESC_AREA = {
+    "Educação": "Escolas, creches, merenda e transporte escolar",
+    "Saúde": "Unidades de saúde, hospital, exames e remédios",
+    "Encargos Especiais": "Parcelas e juros da dívida, precatórios e outros encargos",
+    "Saneamento": "Saneamento básico: água, esgoto, drenagem e resíduos",
+    "Urbanismo": "Ruas, iluminação, praças e serviços urbanos",
+    "Administração": "Funcionamento da própria Prefeitura",
+    "Assistência Social": "Atendimento a famílias em vulnerabilidade",
+    "Previdência Social": "Aposentadorias e pensões dos servidores",
+    "Segurança Pública": "Guarda Municipal e Defesa Civil",
+    "Legislativa": "Funcionamento da Câmara Municipal",
+  };
+  const anosFluxo = fechados.filter((a) => a.receita_composicao && a.despesa_funcao);
+  const DESTINOS = (() => {
+    const tot = {};
+    anosFluxo.forEach((a) => Object.entries(a.despesa_funcao).forEach(([n, v]) => { tot[n] = (tot[n] || 0) + v * a.ipca_fator; }));
+    return Object.entries(tot).sort((p, q) => q[1] - p[1]).slice(0, 6).map(([n]) => n);
+  })();
+  const fluxo = { ano: anosFluxo.length ? anosFluxo[anosFluxo.length - 1].ano : null, geo: null, dados: null, els: null, raf: 0, timer: null };
+  const soma = (xs) => xs.reduce((s, n) => s + n.v, 0);
+
+  function dadosFluxo(a) {
+    const c = a.receita_composicao;
+    const f = a.despesa_funcao;
+    const ent = ORIGENS.map((o) => ({ ...o, lado: "ent", cor: cssVar(o.cor), v: money(a, o.soma.reduce((s, k) => s + (c[k] || 0), 0)) }));
+    const sai = DESTINOS.map((n) => ({ k: `d:${n}`, lado: "sai", nome: n, curto: CURTO_AREA[n] || n, det: DESC_AREA[n] || "", v: money(a, f[n] || 0) }));
+    const resto = Object.entries(f).filter(([n]) => !DESTINOS.includes(n)).sort((p, q) => q[1] - p[1]);
+    sai.push({ k: "d:demais", lado: "sai", nome: "Demais áreas", curto: "Demais áreas", det: resto.slice(0, 6).map(([n]) => n).join(", ") + (resto.length > 6 ? " e outras" : ""), v: money(a, resto.reduce((s, [, v]) => s + v, 0)) });
+    const E = soma(ent);
+    const S = soma(sai);
+    ent.push({ k: "reservas", lado: "ent", nome: "Saldo de anos anteriores", curto: "Saldo anterior", cor: cssVar("--neutral"), v: Math.max(0, S - E),
+      det: "Neste ano se gastou mais do que entrou. A diferença saiu de dinheiro guardado ou virou conta para depois." });
+    sai.push({ k: "naogasto", lado: "sai", nome: "Não gasto no ano", curto: "Não gasto", v: Math.max(0, E - S),
+      det: "Parte do que entrou não virou despesa no ano: ficou em caixa ou paga contas já assumidas." });
+    return { a, ent, sai, E, S, T: Math.max(E, S) };
+  }
+
+  // Posições de tudo (nós, faixas, rótulos) como números, para poder interpolar entre dois anos.
+  function geoFluxo(d, W, H, estreito) {
+    const labelW = estreito ? Math.min(116, W * 0.36) : 178;
+    const nw = 12;
+    const gap = estreito ? 7 : 10;
+    const pt = 34;
+    const pb = 6;
+    const xL = labelW;
+    const xR = W - labelW - nw;
+    const xM = (W - nw) / 2;
+    const nL = d.ent.filter((n) => n.v > 0).length;
+    const nR = d.sai.filter((n) => n.v > 0).length;
+    const k = (H - pt - pb - (Math.max(nL, nR) - 1) * gap) / d.T;
+    const coluna = (lista, n) => {
+      let y = pt + (H - pt - pb - (d.T * k + (n - 1) * gap)) / 2;
+      return lista.map((no) => { const g = { y, h: no.v * k }; if (no.v > 0) y += g.h + gap; return g; });
+    };
+    const L = coluna(d.ent, nL);
+    const R = coluna(d.sai, nR);
+    const mh = d.T * k;
+    const my = pt + (H - pt - pb - mh) / 2;
+    const links = {};
+    let ym = my;
+    d.ent.forEach((n, i) => { links[`${n.k}>m`] = [L[i].y, L[i].y + L[i].h, ym, ym + L[i].h]; ym += L[i].h; });
+    ym = my;
+    d.sai.forEach((n, i) => { links[`m>${n.k}`] = [ym, ym + R[i].h, R[i].y, R[i].y + R[i].h]; ym += R[i].h; });
+    const lh = estreito ? 28 : 32;
+    const rotulos = (lista, gs) => {
+      const vis = lista.map((n, i) => ({ i, y: gs[i].y + gs[i].h / 2 })).filter((o) => lista[o.i].v > 0);
+      for (let j = 1; j < vis.length; j++) vis[j].y = Math.max(vis[j].y, vis[j - 1].y + lh);
+      if (vis.length) vis[vis.length - 1].y = Math.min(vis[vis.length - 1].y, H - lh / 2);
+      for (let j = vis.length - 2; j >= 0; j--) vis[j].y = Math.min(vis[j].y, vis[j + 1].y - lh);
+      const out = gs.map((g) => g.y + g.h / 2);
+      vis.forEach((o) => { out[o.i] = o.y; });
+      return out;
+    };
+    return { L, R, links, mid: [my, mh], labL: rotulos(d.ent, L), labR: rotulos(d.sai, R), xL, xR, xM, nw };
+  }
+  const lerpGeo = (a, b, t) => {
+    const l = (p, q) => p + (q - p) * t;
+    const arr = (p, q) => p.map((v, i) => l(v, q[i]));
+    const links = {};
+    Object.keys(b.links).forEach((k) => { links[k] = arr(a.links[k] || b.links[k], b.links[k]); });
+    return {
+      ...b, links,
+      L: b.L.map((g, i) => ({ y: l(a.L[i].y, g.y), h: l(a.L[i].h, g.h) })),
+      R: b.R.map((g, i) => ({ y: l(a.R[i].y, g.y), h: l(a.R[i].h, g.h) })),
+      mid: arr(a.mid, b.mid), labL: arr(a.labL, b.labL), labR: arr(a.labR, b.labR),
+    };
+  };
+  const fita = (x0, a0, a1, x1, b0, b1) => {
+    const xm = (x0 + x1) / 2;
+    return `M${x0},${a0}C${xm},${a0} ${xm},${b0} ${x1},${b0}L${x1},${b1}C${xm},${b1} ${xm},${a1} ${x0},${a1}Z`;
+  };
+
+  function aplicarFluxo(g) {
+    const e = fluxo.els;
+    const d = fluxo.dados;
+    d.ent.forEach((n, i) => {
+      const [a0, a1, b0, b1] = g.links[`${n.k}>m`];
+      e.links[`${n.k}>m`].setAttribute("d", fita(g.xL + g.nw, a0, a1, g.xM, b0, b1));
+      e.nos[n.k].setAttribute("y", g.L[i].y);
+      e.nos[n.k].setAttribute("height", Math.max(0, g.L[i].h));
+      e.txt[n.k].setAttribute("transform", `translate(${g.xL - 8},${g.labL[i]})`);
+      e.hits[n.k].setAttribute("y", Math.min(g.L[i].y, g.labL[i] - 15));
+      e.hits[n.k].setAttribute("height", Math.max(g.L[i].h, 30));
+    });
+    d.sai.forEach((n, i) => {
+      const [a0, a1, b0, b1] = g.links[`m>${n.k}`];
+      e.links[`m>${n.k}`].setAttribute("d", fita(g.xM + g.nw, a0, a1, g.xR, b0, b1));
+      e.nos[n.k].setAttribute("y", g.R[i].y);
+      e.nos[n.k].setAttribute("height", Math.max(0, g.R[i].h));
+      e.txt[n.k].setAttribute("transform", `translate(${g.xR + g.nw + 8},${g.labR[i]})`);
+      e.hits[n.k].setAttribute("y", Math.min(g.R[i].y, g.labR[i] - 15));
+      e.hits[n.k].setAttribute("height", Math.max(g.R[i].h, 30));
+    });
+    e.mid.setAttribute("y", g.mid[0]);
+    e.mid.setAttribute("height", g.mid[1]);
+    e.hits.mid.setAttribute("y", g.mid[0]);
+    e.hits.mid.setAttribute("height", g.mid[1]);
+  }
+
+  // Textos que mudam com o ano: rótulos, resposta, tabela.
+  function textosFluxo() {
+    const d = fluxo.dados;
+    const e = fluxo.els;
+    [...d.ent, ...d.sai].forEach((n) => {
+      const t = e.txt[n.k];
+      const base = n.lado === "ent" ? d.E : d.S;
+      t.querySelector(".n").textContent = e.estreito ? n.curto : n.nome;
+      const parte = `${nf0.format((100 * n.v) / base)}%`;
+      const extra = n.k === "reservas" || n.k === "naogasto";
+      t.querySelector(".v").textContent = e.estreito ? (extra ? mi(n.v).replace("R$ ", "") : parte) : extra ? mi(n.v) : `${mi(n.v)} · ${parte}`;
+      t.style.opacity = n.v > 0 ? 1 : 0;
+      e.nos[n.k].style.opacity = n.v > 0 ? 1 : 0;
+    });
+    e.midTxt.textContent = e.estreito ? `Prefeitura · ${mi(d.E)}` : `Prefeitura · ${mi(d.E)} entraram`;
+    const ano = d.a.ano;
+    const prop = d.ent.find((n) => n.k === "propria").v;
+    const areas = d.sai.filter((n) => n.k.startsWith("d:") && n.k !== "d:demais").sort((p, q) => q.v - p.v);
+    const [a1, a2] = areas;
+    document.getElementById("r-fluxo").innerHTML =
+      `Em ${ano} entraram <strong>${mi(d.E)}</strong>. De cada R$ 100, <strong>R$ ${nf0.format((100 * prop) / d.E)} foram arrecadados pela própria cidade</strong>, ` +
+      `e o resto veio de repasses. Na saída, <strong>${a1.nome} e ${a2.nome.toLowerCase()} levaram R$ ${nf0.format((100 * (a1.v + a2.v)) / d.S)} de cada R$ 100</strong> gastos.`;
+    document.getElementById("ano-fluxo-out").textContent = ano;
+    const lin = (lista, base) => lista.filter((n) => n.v > 0).map((n) => `<tr><th scope="row">${n.nome}</th><td>${mi(n.v)}</td><td>${pct((100 * n.v) / base)}</td></tr>`).join("");
+    document.getElementById("tabela-fluxo").innerHTML = `<summary>Ver os números de ${ano} em tabela</summary>
+      <table><caption class="sr-only">De onde veio o dinheiro em ${ano}</caption><thead><tr><th scope="col">De onde veio</th><th scope="col">Valor</th><th scope="col">Parte</th></tr></thead><tbody>${lin(d.ent.filter((n) => n.k !== "reservas"), d.E)}</tbody></table>
+      <table><caption class="sr-only">Para onde foi o dinheiro em ${ano}</caption><thead><tr><th scope="col">Para onde foi</th><th scope="col">Valor</th><th scope="col">Parte</th></tr></thead><tbody>${lin(d.sai.filter((n) => n.k !== "naogasto"), d.S)}</tbody></table>`;
+  }
+
+  function tipNo(k) {
+    const d = fluxo.dados;
+    const ano = d.a.ano;
+    if (k === "mid") return `<strong>Prefeitura em ${ano}</strong>Entraram ${mi(d.E)}<br>Gastos (despesa liquidada): ${mi(d.S)}`;
+    const n = [...d.ent, ...d.sai].find((x) => x.k === k);
+    if (!n.v) return `<strong>${n.nome}</strong>Não houve em ${ano}`;
+    const base = n.lado === "ent" ? d.E : d.S;
+    const parte = n.k === "reservas" || n.k === "naogasto" ? "" : ` · ${pct((100 * n.v) / base)} ${n.lado === "ent" ? "do que entrou" : "do gasto"}`;
+    return `<strong>${n.nome}</strong>${mi(n.v)}${parte}${n.det ? `<br><span class="muted">${n.det}</span>` : ""}`;
+  }
+
+  function construirFluxo() {
+    const fig = document.getElementById("c-fluxo");
+    if (!fig || !anosFluxo.length) return;
+    cancelAnimationFrame(fluxo.raf);
+    fig.innerHTML = "";
+    const W = Math.max(fig.clientWidth - 32, 300);
+    const estreito = W < 600;
+    const H = estreito ? 460 : 430;
+    fluxo.dados = dadosFluxo(anosFluxo.find((x) => x.ano === fluxo.ano));
+    const d = fluxo.dados;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "sankey" }, fig);
+    const gL = el("g", {}, svg);
+    const gN = el("g", {}, svg);
+    const gT = el("g", {}, svg);
+    const gH = el("g", {}, svg);
+    const e = { links: {}, nos: {}, txt: {}, hits: {}, estreito };
+    const geo0 = geoFluxo(d, W, H, estreito);
+    const realce = (ks) => { svg.classList.add("foco"); ks.forEach((k) => e.links[k]?.classList.add("on")); };
+    const apaga = () => { svg.classList.remove("foco"); Object.values(e.links).forEach((p) => p.classList.remove("on")); };
+    d.ent.forEach((n) => {
+      const p = el("path", { class: "link", fill: n.cor }, gL);
+      e.links[`${n.k}>m`] = p;
+      bindTip(p, () => tipNo(n.k), () => realce([`${n.k}>m`]), apaga);
+    });
+    d.sai.forEach((n) => {
+      const p = el("path", { class: "link sai" }, gL);
+      e.links[`m>${n.k}`] = p;
+      bindTip(p, () => tipNo(n.k), () => realce([`m>${n.k}`]), apaga);
+    });
+    const alvos = [];
+    const no = (n, x, cor) => {
+      e.nos[n.k] = el("rect", { x, width: geo0.nw, rx: 2, fill: cor, class: "no" }, gN);
+      const t = el("g", { class: "rot" }, gT);
+      const anchor = n.lado === "ent" ? "end" : "start";
+      el("text", { class: "lbl n", "text-anchor": anchor, y: -3 }, t);
+      el("text", { class: "tick v", "text-anchor": anchor, y: 12 }, t);
+      e.txt[n.k] = t;
+      const hx = n.lado === "ent" ? 0 : geo0.xR - 4;
+      const hw = n.lado === "ent" ? geo0.xL + geo0.nw + 4 : W - geo0.xR + 4;
+      e.hits[n.k] = el("rect", { x: hx, width: hw, class: "hit" }, gH);
+      const lk = n.lado === "ent" ? `${n.k}>m` : `m>${n.k}`;
+      alvos.push(bindTip(e.hits[n.k], () => tipNo(n.k), () => realce([lk]), apaga));
+    };
+    d.ent.forEach((n) => no(n, geo0.xL, n.cor));
+    e.mid = el("rect", { x: geo0.xM, width: geo0.nw, rx: 2, fill: cssVar("--text-primary"), class: "no" }, gN);
+    e.midTxt = txt(gT, geo0.xM + geo0.nw / 2, 18, "", "lbl n");
+    e.hits.mid = el("rect", { x: geo0.xM - 14, width: geo0.nw + 28, class: "hit" }, gH);
+    alvos.push(bindTip(e.hits.mid, () => tipNo("mid")));
+    d.sai.forEach((n) => no(n, geo0.xR, cssVar("--text-secondary")));
+    fluxo.els = e;
+    fluxo.geo = geo0;
+    fluxo.W = W;
+    fluxo.H = H;
+    textosFluxo();
+    aplicarFluxo(geo0);
     navegavel(fig, svg, alvos);
   }
 
-  // ---------- ranking (barras horizontais com sinal, um município em destaque) ----------
-  function ranking(fig, { itens, fmt, refs = [] }) {
-    fig.innerHTML = "";
-    const W = Math.max(fig.clientWidth - 32, 300);
-    const rowH = 28;
-    const labelW = Math.min(190, W * 0.34);
-    const valW = 76;
-    const top = 22; // espaço para os rótulos das linhas de referência
-    const com = itens.filter((i) => i.valor != null);
-    const sem = itens.filter((i) => i.valor == null);
-    const H = top + itens.length * rowH + 4;
-    const vals = [...com.map((i) => i.valor), ...refs.map((r) => r.v)];
-    const lo = Math.min(0, ...vals);
-    const hi = Math.max(0, ...vals);
-    const negW = lo < 0 ? valW : 0; // espaço para o rótulo à esquerda das barras negativas
-    const x = (v) => labelW + negW + ((v - lo) / (hi - lo || 1)) * (W - labelW - negW - valW);
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img" }, fig);
-    const destaque = cssVar("--series-1");
-    const outros = cssVar("--neutral");
+  function irAnoFluxo(ano) {
+    if (!fluxo.els || ano === fluxo.ano) return;
+    fluxo.ano = ano;
+    fluxo.dados = dadosFluxo(anosFluxo.find((x) => x.ano === ano));
+    const de = fluxo.geo;
+    const para = geoFluxo(fluxo.dados, fluxo.W, fluxo.H, fluxo.els.estreito);
+    fluxo.geo = para;
+    textosFluxo();
+    cancelAnimationFrame(fluxo.raf);
+    if (semMovimento.matches) { aplicarFluxo(para); return; }
+    const t0 = performance.now();
+    const passo = (t) => {
+      const p = Math.min(1, (t - t0) / 650);
+      const ease = p < 0.5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2;
+      aplicarFluxo(lerpGeo(de, para, ease));
+      if (p < 1) fluxo.raf = requestAnimationFrame(passo);
+    };
+    fluxo.raf = requestAnimationFrame(passo);
+  }
 
-    refs.forEach((r, k) => {
-      el("line", { x1: x(r.v), x2: x(r.v), y1: top - 4, y2: H, class: "limit" }, svg);
-      txt(svg, x(r.v), 10 + (k % 2) * 0, r.label, "lbl", k === 0 && refs.length > 1 && Math.abs(x(r.v) - x(refs[1].v)) < 120 ? "end" : "middle");
+  function controlesFluxo() {
+    if (!anosFluxo.length) { document.getElementById("cap-caminho").hidden = true; return; }
+    const rng = document.getElementById("ano-fluxo");
+    const btn = document.getElementById("tocar-fluxo");
+    const resp = document.getElementById("r-fluxo");
+    rng.min = anosFluxo[0].ano;
+    rng.max = anosFluxo[anosFluxo.length - 1].ano;
+    rng.value = fluxo.ano;
+    document.getElementById("ano-fluxo-min").textContent = rng.min;
+    document.getElementById("ano-fluxo-max").textContent = rng.max;
+    const parar = () => {
+      clearInterval(fluxo.timer);
+      fluxo.timer = null;
+      btn.setAttribute("aria-pressed", "false");
+      btn.setAttribute("aria-label", "Reproduzir a evolução ano a ano");
+      btn.querySelector("span").textContent = "▶";
+      resp.setAttribute("aria-live", "polite");
+    };
+    rng.addEventListener("input", () => { parar(); irAnoFluxo(+rng.value); });
+    btn.addEventListener("click", () => {
+      if (fluxo.timer) { parar(); return; }
+      resp.setAttribute("aria-live", "off");
+      btn.setAttribute("aria-pressed", "true");
+      btn.setAttribute("aria-label", "Pausar");
+      btn.querySelector("span").textContent = "❚❚";
+      let i = anosFluxo.findIndex((x) => x.ano === fluxo.ano);
+      if (i >= anosFluxo.length - 1) i = -1;
+      const passo = () => {
+        i += 1;
+        rng.value = anosFluxo[i].ano;
+        irAnoFluxo(anosFluxo[i].ano);
+        if (i >= anosFluxo.length - 1) parar();
+      };
+      passo();
+      fluxo.timer = setInterval(passo, 1400);
     });
-    el("line", { x1: x(0), x2: x(0), y1: top - 4, y2: H, class: "base" }, svg);
+  }
 
-    const alvos = [];
-    [...com, ...sem].forEach((it, k) => {
-      const y0 = top + k * rowH;
-      txt(svg, labelW - 8, y0 + 16, it.nome, it.alvo ? "val" : "lbl", "end");
-      if (it.valor == null) {
-        txt(svg, x(0) + 6, y0 + 16, "sem dado", "tick", "start");
-      } else {
-        const v = it.valor;
-        const fill = it.alvo ? destaque : outros;
-        if (v >= 0) el("path", { d: hbarPath(x(0), y0 + 4, x(v), 18), fill }, svg);
-        else el("path", { d: hbarPath(x(0), y0 + 4, x(0) + (x(0) - x(v)), 18), fill, transform: `translate(${2 * x(0)},0) scale(-1,1)` }, svg);
-        txt(svg, v >= 0 ? x(v) + 6 : x(v) - 6, y0 + 16, fmt(v), it.alvo ? "val" : "tick", v >= 0 ? "start" : "end");
-      }
-      const hit = el("rect", { x: 0, y: y0, width: W, height: rowH, class: "hit" }, svg);
-      alvos.push(bindTip(hit, `<strong>${it.nome}</strong>${it.valor == null ? "sem dado" : fmt(it.valor)}${it.extra ? `<br><span class="muted">${it.extra}</span>` : ""}`));
-    });
-    navegavel(fig, svg, alvos);
+  // ---------- seu recibo ----------
+  function recibo() {
+    const inp = document.getElementById("valor-imposto");
+    const out = document.getElementById("recibo");
+    const fala = document.getElementById("recibo-resumo");
+    if (!inp || !ult.despesa_funcao) return;
+    const fun = Object.entries(ult.despesa_funcao).sort((p, q) => q[1] - p[1]);
+    const tot = fun.reduce((s, [, v]) => s + v, 0);
+    const linhasR = fun.slice(0, 8).map(([n, v]) => ({ n: CURTO_AREA[n] || n, s: v / tot, det: DESC_AREA[n] || "" }));
+    const resto = fun.slice(8).reduce((s, [, v]) => s + v, 0) / tot;
+    if (resto > 0) linhasR.push({ n: "Demais áreas", s: resto, det: `${fun.slice(8, 12).map(([n]) => n).join(", ")} e outras` });
+    const maxS = Math.max(...linhasR.map((l) => l.s));
+    const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+    const ler = () => {
+      const v = parseFloat(inp.value.replace(/[^\d,]/g, "").replace(",", "."));
+      return Number.isFinite(v) && v > 0 ? v : 0;
+    };
+    out.innerHTML = `<p class="recibo-topo"><span>Recibo do contribuinte</span><span>Mogi Guaçu · ${ult.ano}</span></p>
+      <ul>${linhasR.map((l, i) => `<li><span class="r-nome">${l.n}${l.det ? `<small>${l.det}</small>` : ""}</span><span class="r-barra" aria-hidden="true"><i style="width:${((100 * l.s) / maxS).toFixed(1)}%;transition-delay:${i * 60}ms"></i></span><span class="r-valor" data-s="${l.s}"></span></li>`).join("")}</ul>
+      <p class="recibo-total"><span>Total</span><span id="recibo-total"></span></p>`;
+    let t;
+    const atualizar = () => {
+      const v = ler();
+      out.querySelectorAll(".r-valor").forEach((n) => { n.textContent = brl.format(v * +n.dataset.s); });
+      document.getElementById("recibo-total").textContent = brl.format(v);
+      clearTimeout(t);
+      t = setTimeout(() => {
+        fala.textContent = v ? `Dos seus ${brl.format(v)}, ${brl.format(v * linhasR[0].s)} vão para ${linhasR[0].n.toLowerCase()} e ${brl.format(v * linhasR[1].s)} para ${linhasR[1].n.toLowerCase()}.` : "";
+      }, 500);
+    };
+    inp.addEventListener("input", atualizar);
+    inp.addEventListener("blur", () => { const v = ler(); if (v) inp.value = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 }).format(v); });
+    document.querySelectorAll("[data-imposto]").forEach((b) => b.addEventListener("click", () => {
+      inp.value = new Intl.NumberFormat("pt-BR").format(+b.dataset.imposto);
+      atualizar();
+    }));
+    atualizar();
   }
 
   const METRICAS = [
@@ -398,7 +764,7 @@
     if (m.limite) refs.push(m.limite);
 
     const fig = document.getElementById("c-comparacao");
-    ranking(fig, { itens, fmt: m.fmt, refs });
+    enxame(fig, { itens, fmt: m.fmt, refs });
     tabela(fig, ["Município", m.nome], itens.map((i) => [i.nome, i.valor == null ? "sem dado" : m.fmt(i.valor)]));
 
     const alvo = itens.find((i) => i.alvo);
@@ -500,22 +866,6 @@
       const d = (100 * (v1 - v0)) / v0;
       setR("r-rcl", `Em ${ano}, a receita foi de <strong>${reais(money(a, a.rcl / a.populacao))} por morador</strong>. ` +
         `Descontada a inflação, são <strong>${pct(Math.abs(d))} ${d >= 0 ? "a mais" : "a menos"}</strong> que em ${p0.ano}.`);
-    }
-
-    const c = a.receita_composicao;
-    if (c) {
-      const propria = ["impostos_taxas", "contribuicoes", "servicos", "patrimonial", "outras_correntes"].reduce((s, k) => s + (c[k] || 0), 0);
-      const total = propria + ["transf_estado", "transf_uniao", "transf_outras", "capital"].reduce((s, k) => s + (c[k] || 0), 0);
-      setR("r-origem", `De cada R$ 100 que entraram, <strong>R$ ${nf0.format((100 * propria) / total)} foram arrecadados pela própria cidade</strong>. ` +
-        `O resto veio de repasses: R$ ${nf0.format((100 * (c.transf_estado || 0)) / total)} do Estado, R$ ${nf0.format((100 * (c.transf_uniao || 0)) / total)} da União e o restante de outras fontes.`);
-    }
-
-    const fun = Object.entries(a.despesa_funcao || {});
-    if (fun.length >= 2) {
-      const tot = fun.reduce((s, [, v]) => s + v, 0);
-      const [[n1, v1f], [n2, v2f]] = fun;
-      setR("r-funcao", `<strong>${n1} e ${n2.toLowerCase()}</strong> levam <strong>R$ ${nf0.format((100 * (v1f + v2f)) / tot)} de cada R$ 100</strong> gastos. ` +
-        `${n1} sozinha fica com R$ ${nf0.format((100 * v1f) / tot)}.`);
     }
   }
 
@@ -672,7 +1022,7 @@
       <article class="tile">${topo(rNivel, res >= 0 ? "Superávit" : "Déficit",
         variacao(money(a, res), money(ant, ant.resultado_orcamentario), ant.ano, mi, "maior"))}
         <h3 class="label">Receita menos despesa</h3>
-        <p class="value">${mi(money(a, res))}</p>
+        <p class="value"><span data-n="${money(a, res)}" data-f="mi">${mi(money(a, res))}</span></p>
         ${spark(serie((x) => money(x, x.resultado_orcamentario)), { sinal: true })}
         <p class="ctx">${res >= 0 ? "Sobrou" : "Faltou"} o equivalente a ${pct(Math.abs(resPct))} da receita do ano.</p>
         <a class="mais" href="#h-resultado">Ver a evolução <span aria-hidden="true">→</span></a>
@@ -680,14 +1030,14 @@
       ${cNivel ? `<article class="tile">${topo(cNivel, cx >= 0 ? "Caixa cobre as contas" : "Caixa no vermelho",
         variacao(money(a, cx), money(ant, ant.caixa_liquida_apos_rp), ant.ano, mi, "maior"))}
         <h3 class="label">Dinheiro em caixa</h3>
-        <p class="value">${mi(money(a, cx))}</p>
+        <p class="value"><span data-n="${money(a, cx)}" data-f="mi">${mi(money(a, cx))}</span></p>
         ${spark(serie((x) => money(x, x.caixa_liquida_apos_rp)), { sinal: true })}
         <p class="ctx">${cx >= 0 ? "Sobra" : "Falta"} depois de reservar as contas que ficaram para o ano seguinte.</p>
         <a class="mais" href="#h-caixa">Ver a evolução <span aria-hidden="true">→</span></a>
       </article>` : ""}
       <article class="tile">${topo(pNivel, pTxt, variacao(a.pessoal_pct_rcl, ant.pessoal_pct_rcl, ant.ano, pontos, "menor"))}
         <h3 class="label">Salários e encargos</h3>
-        <p class="value">${pct(a.pessoal_pct_rcl)} <small>da receita</small></p>
+        <p class="value"><span data-n="${a.pessoal_pct_rcl}" data-f="pct">${pct(a.pessoal_pct_rcl)}</span> <small>da receita</small></p>
         ${spark(serie((x) => x.pessoal_pct_rcl))}
         ${meter(a.pessoal_pct_rcl, 60, [48.6, 51.3, 54], pNivel)}
         <p class="ctx">A barra mostra a distância até o teto da lei, de 54%.</p>
@@ -696,12 +1046,13 @@
       <article class="tile">${topo(dNivel, dNivel === "good" ? "Bem abaixo do limite" : dNivel === "warning" ? "Perto do limite" : "Acima do limite",
         variacao(a.dcl_pct_rcl, ant.dcl_pct_rcl, ant.ano, pontos, "menor"))}
         <h3 class="label">Dívida</h3>
-        <p class="value">${pct(a.dcl_pct_rcl)} <small>da receita</small></p>
+        <p class="value"><span data-n="${a.dcl_pct_rcl}" data-f="pct">${pct(a.dcl_pct_rcl)}</span> <small>da receita</small></p>
         ${spark(serie((x) => x.dcl_pct_rcl))}
         ${meter(a.dcl_pct_rcl, 130, [120], dNivel)}
         <p class="ctx">${mi(money(a, a.dcl))}. A barra mostra a distância até o limite de 120%.</p>
         <a class="mais" href="#h-divida">Ver a evolução <span aria-hidden="true">→</span></a>
       </article>`;
+    contar(box);
   }
 
   // ---------- montagem ----------
@@ -773,27 +1124,7 @@
     tabela(fR, ["Ano", "RCL por habitante", "RCL", "População"],
       D.anos.map((a) => [a.ano, reais(percap(a)), mi(money(a, a.rcl)), nf0.format(a.populacao || 0)]));
 
-    const c = ult.receita_composicao;
-    const propria = ["impostos_taxas", "contribuicoes", "servicos", "patrimonial", "outras_correntes"].reduce((s, k) => s + (c[k] || 0), 0);
-    const fO = document.getElementById("c-origem");
-    const partes = [
-      { nome: "Arrecadação própria", valor: propria, color: cssVar("--series-1"), det: `Impostos e taxas ${mi(c.impostos_taxas)}, serviços ${mi(c.servicos)}, outras ${mi(propria - c.impostos_taxas - c.servicos)}` },
-      { nome: "Transferências do Estado", valor: c.transf_estado, color: cssVar("--series-2"), det: "Principalmente cota-parte do ICMS e do IPVA" },
-      { nome: "Transferências da União", valor: c.transf_uniao, color: cssVar("--series-3"), det: "FPM, SUS e programas federais" },
-      { nome: "Outras transferências", valor: c.transf_outras, color: cssVar("--series-4"), ink: "#0b0b0b", det: "Sobretudo o retorno do FUNDEB" },
-      { nome: "Receitas de capital", valor: c.capital, color: cssVar("--series-5"), det: "Convênios para obras, venda de bens e empréstimos" },
-    ].filter((p) => p.valor > 0);
-    segmentada(fO, { partes });
-    tabela(fO, ["Origem", "Valor (da época)", "Participação"],
-      partes.map((p) => [p.nome, mi(p.valor), pct((100 * p.valor) / partes.reduce((s, q) => s + q.valor, 0))]));
-
-    const fF = document.getElementById("c-funcao");
-    const fun = Object.entries(ult.despesa_funcao);
-    const top = fun.slice(0, 8).map(([nome, valor]) => ({ nome, valor }));
-    const resto = fun.slice(8).reduce((s, [, v]) => s + v, 0);
-    if (resto > 0) top.push({ nome: "Demais áreas", valor: resto, extra: fun.slice(8).map(([n]) => n).join(", ") });
-    barrasH(fF, { itens: top, color: cssVar("--series-1") });
-    tabela(fF, ["Área", "Despesa liquidada (da época)"], fun.map(([n, v]) => [n, mi(v)]));
+    construirFluxo();
 
     if (D.fornecedores) {
       const fo = D.fornecedores;
@@ -825,15 +1156,25 @@
     document.querySelectorAll("[data-modo]").forEach((o) => o.setAttribute("aria-pressed", String(o === b)));
     render();
   }));
+  // No celular a barra de endereço muda a altura ao rolar: só redesenha se a largura mudou.
   let t;
-  addEventListener("resize", () => { clearTimeout(t); t = setTimeout(render, 150); });
+  let largura = innerWidth;
+  addEventListener("resize", () => {
+    if (innerWidth === largura) return;
+    largura = innerWidth;
+    clearTimeout(t);
+    t = setTimeout(render, 150);
+  });
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
 
   textos();
   glossario();
   indice();
+  animarAoVer();
   controlesComparacao();
+  controlesFluxo();
   render();
+  recibo();
   // Link direto para uma seção (#h-comparacao): rola só depois que os gráficos têm altura.
   if (location.hash) document.querySelector(location.hash)?.scrollIntoView();
 })();
