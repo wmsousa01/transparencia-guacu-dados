@@ -33,7 +33,7 @@ def ultimo_rreo(ano: int, corrente: bool, ibge=IBGE):
         it = rreo(ano, b, refresh=corrente, ibge=ibge)
         if it:
             return b, it
-        if not corrente:  # ano fechado sem 6º bimestre: não entregou, não adianta descer
+        if not corrente:  # ano antigo sem 6º bimestre: não entregou, não adianta descer
             return None, []
     return None, []
 

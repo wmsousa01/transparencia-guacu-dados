@@ -1506,5 +1506,6 @@ window.DADOS = {
     "pago": 444343.7
    }
   ]
- }
+ },
+ "avisos": []
 };

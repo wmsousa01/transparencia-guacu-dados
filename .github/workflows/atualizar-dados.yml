@@ -1,0 +1,51 @@
+name: Atualizar dados
+
+# Todo dia 10, 06h de Brasília. Os relatórios da LRF vencem 30 dias depois de cada bimestre
+# ou quadrimestre, e o TCE-SP recebe a execução mensal até o dia 5 ou 6 do mês seguinte.
+on:
+  schedule:
+    - cron: "0 9 10 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: atualizar-dados
+  cancel-in-progress: false
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Guarda a versão publicada
+        run: cp site/data/indicadores.json "$RUNNER_TEMP/publicado.json"
+
+      - name: Coleta (Siconfi, TCE-SP, SIOPS, IPCA)
+        env:
+          PYTHONIOENCODING: utf-8
+        run: python collect/build.py --tce "$(( $(date +%Y) - 1 ))"
+
+      - name: Checagem de sanidade
+        env:
+          PYTHONIOENCODING: utf-8
+        run: python collect/check.py "$RUNNER_TEMP/publicado.json" site/data/indicadores.json
+
+      - name: Publica (commit dispara o deploy da Vercel)
+        run: |
+          if git diff --quiet -- site/data; then
+            echo "Sem mudança nos dados."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/data
+          git commit -m "Dados: atualização de $(date +%Y-%m-%d)"
+          git push

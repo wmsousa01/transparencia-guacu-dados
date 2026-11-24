@@ -22,6 +22,8 @@ python collect/build.py --tce 2025   # Python 3.10+, só stdlib (--sem-comparaca
 # abre site/index.html no navegador (funciona via file://)
 ```
 
+- Atualização automática: `.github/workflows/atualizar-dados.yml` roda todo dia 10 (e sob demanda em Actions → "Atualizar dados" → Run workflow). Coleta, passa por `collect/check.py` (barra publicação se sumir ano ou campo-chave ficar vazio) e commita `site/data/`. O push dispara o deploy de produção na Vercel. Se uma fonte opcional (SIOPS, TCE-SP, vizinhos) cair, o bloco mantém o valor anterior e o aviso vai para `avisos` no JSON. Se a execução falhar, o GitHub avisa por e-mail.
+- O ano anterior é tratado como "em andamento" até o RREO do 6º bimestre e o RGF do 3º quadrimestre saírem (fim de janeiro/fevereiro).
 - Downloads ficam em `data/raw/` (fora do git). Exercícios fechados são cache permanente; o ano corrente é rebaixado a cada execução.
 - Saída: `site/data/indicadores.json` (e `.js`, o mesmo conteúdo para a página abrir sem servidor).
 
@@ -38,4 +40,3 @@ python collect/build.py --tce 2025   # Python 3.10+, só stdlib (--sem-comparaca
 - SIOPE de novo quando a plataforma nova do FNDE publicar API
 - IEGM (TCE-SP) e CAPAG (Tesouro)
 - Pareceres de 2018 em diante (o conjunto de dados do TCE-SP para em 2017; buscar no e-TCESP)
-- Deploy estático (Vercel) com atualização agendada

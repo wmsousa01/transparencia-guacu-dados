@@ -99,7 +99,8 @@ def ano_siconfi(ano: int, corrente: bool, ibge: int = siconfi.IBGE):
     pop = next((i.get("populacao") for i in r + g if i.get("populacao")), None)
     return {
         "ano": ano,
-        "parcial": corrente,
+        # Parcial = ainda falta o relatório de fechamento (6º bimestre ou 3º quadrimestre).
+        "parcial": not (bim == 6 and quad == 3),
         "periodo_rreo": f"{bim}º bimestre" if bim else None,
         "periodo_rgf": f"{quad}º quadrimestre" if quad else None,
         "populacao": pop,
@@ -239,9 +240,22 @@ def main():
     args = ap.parse_args()
 
     hoje = dt.date.today()
+    anterior = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else {}
+    avisos = []
+
+    def opcional(nome, fn, fallback):
+        """Fonte que pode cair num mês sem travar a atualização: mantém o valor anterior."""
+        try:
+            return fn()
+        except Exception as e:  # noqa: BLE001
+            avisos.append(f"{nome}: {e}")
+            print(f"AVISO {nome} falhou, mantendo valor anterior: {e}")
+            return fallback
+
     anos = []
     for ano in range(ANO_INI, hoje.year + 1):
-        a = ano_siconfi(ano, corrente=(ano == hoje.year))
+        # O ano anterior segue "em andamento" até o relatório de fechamento sair (fim de janeiro/fevereiro).
+        a = ano_siconfi(ano, corrente=(ano >= hoje.year - 1))
         if a:
             anos.append(a)
             print(ano, "ok", a["periodo_rreo"], a["periodo_rgf"])
@@ -251,8 +265,16 @@ def main():
     for a in anos:
         a["ipca_fator"] = round(fat.get(a["ano"], 1.0), 6)
 
-    analises = tce_dados.analises()
-    saude_siops = siops.saude_pct(list(municipios.todos()), ANO_INI)
+    analises = opcional("TCE-SP análises", lambda: tce_dados.analises(refresh=True), {})
+    if not analises:  # sem TCE-SP, reaproveita ensino/saúde já publicados ano a ano
+        prev = {a["ano"]: a for a in anterior.get("anos", [])}
+        analises = {(siconfi.IBGE, y): {"ensino_pct": p.get("educacao_pct"), "saude_pct": p.get("saude_pct"),
+                                        "fundeb_profissionais_pct": p.get("fundeb_profissionais_pct")}
+                    for y, p in prev.items() if not p.get("parcial")}
+    saude_siops = opcional("SIOPS", lambda: siops.saude_pct(list(municipios.todos()), ANO_INI, refresh=True), None)
+    if saude_siops is None:
+        saude_siops = {(siconfi.IBGE, a["ano"]): a.get("saude_pct_siops") for a in anterior.get("anos", [])
+                       if a.get("saude_pct_siops") is not None}
     enriquecer_minimos(anos, analises, saude_siops)
 
     out = {
@@ -262,7 +284,8 @@ def main():
         "gerado_em": hoje.isoformat(),
         "base_precos": ultimo_fechado,
         "anos": anos,
-        "pareceres": tce_dados.pareceres(siconfi.IBGE),
+        "pareceres": opcional("TCE-SP pareceres", lambda: tce_dados.pareceres(siconfi.IBGE, refresh=True),
+                              anterior.get("pareceres", [])),
         "fontes": [
             {"nome": "Siconfi / Tesouro Nacional (RREO e RGF)", "url": "https://siconfi.tesouro.gov.br"},
             {"nome": "TCE-SP: Resultado das Análises Audesp (LRF, Ensino, Saúde) e Pareceres",
@@ -274,9 +297,12 @@ def main():
         ],
     }
     if not args.sem_comparacao:
-        out["comparacao"] = comparacao(ultimo_fechado, analises, saude_siops)
+        out["comparacao"] = opcional("comparação", lambda: comparacao(ultimo_fechado, analises, saude_siops),
+                                     anterior.get("comparacao"))
     if args.tce:
-        out["fornecedores"] = fornecedores(args.tce)
+        out["fornecedores"] = opcional("fornecedores", lambda: fornecedores(args.tce), anterior.get("fornecedores"))
+    out = {k: v for k, v in out.items() if v is not None}
+    out["avisos"] = avisos
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     txt = json.dumps(out, ensure_ascii=False, indent=1)

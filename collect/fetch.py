@@ -48,6 +48,8 @@ def get_json(url: str, cache_name: str, refresh: bool = False, pause: float = 1.
         return json.loads(path.read_text(encoding="utf-8"))
     data = json.loads(get_bytes(url, cache_name + ".tmp", True, pause).decode("utf-8"))
     (RAW / (cache_name + ".tmp")).unlink()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    vazio = isinstance(data, dict) and data.get("items") == [] or data == []
+    if not vazio:  # "ainda não entregue" não pode virar cache permanente
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     return data
