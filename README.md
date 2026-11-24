@@ -36,5 +36,6 @@ python collect/build.py --tce 2025   # Python 3.10+, só stdlib (--sem-comparaca
 ## Próximos passos
 
 - SIOPE de novo quando a plataforma nova do FNDE publicar API
-- IEGM (TCE-SP), CAPAG (Tesouro) e pareceres das contas anuais
+- IEGM (TCE-SP) e CAPAG (Tesouro)
+- Pareceres de 2018 em diante (o conjunto de dados do TCE-SP para em 2017; buscar no e-TCESP)
 - Deploy estático (Vercel) com atualização agendada
