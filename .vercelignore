@@ -1,4 +1,4 @@
-data/
-collect/
+/data/
+/collect/
 __pycache__/
-*.md
+/*.md
