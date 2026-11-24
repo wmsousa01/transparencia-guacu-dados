@@ -26,7 +26,7 @@ jobs:
           python-version: "3.12"
 
       - name: Guarda a versão publicada
-        run: cp site/data/indicadores.json "$RUNNER_TEMP/publicado.json"
+        run: cp web/data/indicadores.json "$RUNNER_TEMP/publicado.json"
 
       - name: Coleta (Siconfi, TCE-SP, SIOPS, IPCA)
         env:
@@ -36,16 +36,16 @@ jobs:
       - name: Checagem de sanidade
         env:
           PYTHONIOENCODING: utf-8
-        run: python collect/check.py "$RUNNER_TEMP/publicado.json" site/data/indicadores.json
+        run: python collect/check.py "$RUNNER_TEMP/publicado.json" web/data/indicadores.json
 
       - name: Publica (commit dispara o deploy da Vercel)
         run: |
-          if git diff --quiet -- site/data; then
+          if git diff --quiet -- web/data; then
             echo "Sem mudança nos dados."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add site/data
+          git add web/data
           git commit -m "Dados: atualização de $(date +%Y-%m-%d)"
           git push

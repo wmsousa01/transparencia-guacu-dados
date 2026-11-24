@@ -1,0 +1,26 @@
+{
+  "name": "transparencia-guacu-web",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Site do Transparência Guaçu (Next.js + Dash UI, exportação estática)",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build"
+  },
+  "engines": {
+    "node": ">=20.9"
+  },
+  "dependencies": {
+    "apexcharts": "^5.16.0",
+    "bootstrap": "5.3",
+    "next": "^16.4.6",
+    "react": "^19.3.1",
+    "react-apexcharts": "^1.9.0",
+    "react-bootstrap": "^2.10.10",
+    "react-dom": "^19.3.1",
+    "react-feather": "^2.0.10"
+  },
+  "devDependencies": {
+    "sass": "^1.108.2"
+  }
+}

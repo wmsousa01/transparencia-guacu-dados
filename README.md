@@ -2,7 +2,7 @@
 
 Infográfico da saúde financeira da Prefeitura de Mogi Guaçu (SP), montado a partir de dados
 oficiais e abertos. No ar em **https://transparencia-guacu.vercel.app**, atualizado todo dia 10.
-Sem backend: um script Python coleta e agrega, a página estática desenha.
+Sem backend: um script Python coleta e agrega, e um site Next.js exportado como HTML estático desenha.
 
 ## Fontes
 
@@ -20,13 +20,15 @@ Sem backend: um script Python coleta e agrega, a página estática desenha.
 
 ```bash
 python collect/build.py --tce 2025   # Python 3.10+, só stdlib (--sem-comparacao pula os vizinhos)
-# abre site/index.html no navegador (funciona via file://)
+cd web && npm ci && npm run dev      # Node 20.9+; abre http://localhost:3000
+npm run build                        # gera web/out (HTML estático, o que a Vercel publica)
 ```
 
-- Atualização automática: `.github/workflows/atualizar-dados.yml` roda todo dia 10 (e sob demanda em Actions → "Atualizar dados" → Run workflow). Coleta, passa por `collect/check.py` (barra publicação se sumir ano ou campo-chave ficar vazio) e commita `site/data/`. O push dispara o deploy de produção na Vercel. Se uma fonte opcional (SIOPS, TCE-SP, vizinhos) cair, o bloco mantém o valor anterior e o aviso vai para `avisos` no JSON. Se a execução falhar, o GitHub avisa por e-mail.
+- Site (`web/`): Next.js 16 com exportação estática, layout do [Dash UI](https://github.com/codescandy/dashui-free-nextjs-admin-template) (MIT, licença em `web/LICENSE-dashui.txt`), Bootstrap 5 e ApexCharts. O fluxo do dinheiro e a comparação são SVG próprio (`web/components/Fluxo.js`, `Comparacao.js`), navegáveis por teclado. Cada gráfico tem tabela equivalente.
+- Atualização automática: `.github/workflows/atualizar-dados.yml` roda todo dia 10 (e sob demanda em Actions → "Atualizar dados" → Run workflow). Coleta, passa por `collect/check.py` (barra publicação se sumir ano ou campo-chave ficar vazio) e commita `web/data/`. O push dispara o deploy de produção na Vercel. Se uma fonte opcional (SIOPS, TCE-SP, vizinhos) cair, o bloco mantém o valor anterior e o aviso vai para `avisos` no JSON. Se a execução falhar, o GitHub avisa por e-mail.
 - O ano anterior é tratado como "em andamento" até o RREO do 6º bimestre e o RGF do 3º quadrimestre saírem (fim de janeiro/fevereiro).
 - Downloads ficam em `data/raw/` (fora do git). Exercícios fechados são cache permanente; o ano corrente é rebaixado a cada execução.
-- Saída: `site/data/indicadores.json` (e `.js`, o mesmo conteúdo para a página abrir sem servidor).
+- Saída: `web/data/indicadores.json`, lido pelo site no build (os números já saem escritos no HTML).
 
 ## Decisões e ressalvas
 

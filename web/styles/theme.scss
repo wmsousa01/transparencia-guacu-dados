@@ -1,0 +1,19 @@
+/*
+ * Tema do Transparência Guaçu, construído sobre o Dash UI (MIT, Codescandy).
+ * Licença original em LICENSE-dashui.txt. Sem fontes ou ícones de CDN externo.
+ */
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/inter.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@import "bootstrap/scss/functions";
+@import "user-variables";
+@import "theme/variables";
+@import "theme/utilities";
+@import "bootstrap/scss/bootstrap";
+@import "theme/theme";
+@import "user";
