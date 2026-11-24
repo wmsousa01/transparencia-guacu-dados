@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transparência Guaçu · a saúde financeira de Mogi Guaçu</title>
+<meta name="description" content="Infográfico com a saúde financeira da Prefeitura de Mogi Guaçu (SP): receitas, despesas, pessoal, dívida e caixa, a partir dos dados oficiais do Tesouro Nacional e do TCE-SP.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="viz-root">
+<header class="topo">
+  <p class="eyebrow">Transparência Guaçu</p>
+  <h1>A saúde financeira de Mogi Guaçu</h1>
+  <p class="lede">Quanto a Prefeitura arrecada, como gasta, quanto deve e se o caixa fecha a conta.
+    Os números vêm dos relatórios que o próprio município entrega ao Tesouro Nacional e ao Tribunal de Contas do Estado.</p>
+  <div class="controles" role="group" aria-label="Como mostrar os valores em reais">
+    <span>Valores em reais:</span>
+    <button type="button" data-modo="real" aria-pressed="true">corrigidos pela inflação</button>
+    <button type="button" data-modo="nominal" aria-pressed="false">da época (nominais)</button>
+  </div>
+</header>
+
+<main>
+  <section aria-labelledby="h-veredito">
+    <h2 id="h-veredito">O resumo de <span data-ano-fechado></span></h2>
+    <p class="nota">Último ano fechado. Cada cartão compara o número com o limite que a lei impõe.</p>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section aria-labelledby="h-resultado">
+    <h2 id="h-resultado">A conta do ano fecha?</h2>
+    <p class="nota">Receita arrecadada menos despesa empenhada (o que a Prefeitura se comprometeu a pagar) em cada ano.
+      Barra para baixo é déficit: o município gastou mais do que arrecadou e cobriu a diferença com sobras de anos anteriores ou deixou a conta para depois.</p>
+    <figure class="chart" id="c-resultado"></figure>
+  </section>
+
+  <section aria-labelledby="h-caixa">
+    <h2 id="h-caixa">Sobra dinheiro em caixa para pagar o que ficou para trás?</h2>
+    <p class="nota">Dinheiro em caixa no fim do ano, já descontadas as contas que passaram para o ano seguinte (os <em>restos a pagar</em>).
+      Negativo quer dizer que as contas deixadas para depois eram maiores que o dinheiro guardado.</p>
+    <figure class="chart" id="c-caixa"></figure>
+  </section>
+
+  <section aria-labelledby="h-pessoal">
+    <h2 id="h-pessoal">Quanto da receita vai para a folha</h2>
+    <p class="nota">Despesa com pessoal do Executivo como % da Receita Corrente Líquida. A Lei de Responsabilidade Fiscal manda acender alertas em 48,6%, restringe contratações em 51,3% e fixa o teto em 54%.</p>
+    <figure class="chart" id="c-pessoal"></figure>
+  </section>
+
+  <section aria-labelledby="h-divida">
+    <h2 id="h-divida">Quanto a cidade deve</h2>
+    <p class="nota">Dívida consolidada líquida (dívidas menos o dinheiro disponível para pagá-las) como % da Receita Corrente Líquida. O Senado limita municípios a 120%.</p>
+    <figure class="chart" id="c-divida"></figure>
+  </section>
+
+  <section aria-labelledby="h-minimos">
+    <h2 id="h-minimos">Saúde e educação: os mínimos constitucionais</h2>
+    <p class="nota">A Constituição obriga o município a aplicar ao menos 15% da receita de impostos em saúde e 25% em educação.
+      Os anos sem ponto não trazem esse dado no Siconfi. Ele existe no SIOPS e no SIOPE, que ainda vamos incorporar.</p>
+    <figure class="chart" id="c-minimos"></figure>
+  </section>
+
+  <section aria-labelledby="h-rcl">
+    <h2 id="h-rcl">A receita por habitante</h2>
+    <p class="nota">Receita Corrente Líquida dividida pela população estimada do ano.</p>
+    <figure class="chart" id="c-rcl"></figure>
+  </section>
+
+  <section aria-labelledby="h-origem">
+    <h2 id="h-origem">De onde vem o dinheiro em <span data-ano-fechado></span></h2>
+    <p class="nota">A maior parte chega por transferências da União e do Estado. A arrecadação própria (IPTU, ISS, ITBI, taxas e serviços) é a parte que o município controla.</p>
+    <figure class="chart" id="c-origem"></figure>
+  </section>
+
+  <section aria-labelledby="h-funcao">
+    <h2 id="h-funcao">Para onde vai o dinheiro em <span data-ano-fechado></span></h2>
+    <p class="nota">Despesa liquidada (serviço entregue ou bem recebido) por área de governo.</p>
+    <figure class="chart" id="c-funcao"></figure>
+  </section>
+
+  <section aria-labelledby="h-fornecedores">
+    <h2 id="h-fornecedores">Quem mais recebeu em <span data-ano-fornecedores></span></h2>
+    <p class="nota" id="nota-fornecedores"></p>
+    <figure class="chart" id="c-fornecedores"></figure>
+    <details class="extra">
+      <summary>Pagamentos a órgãos públicos, encargos e dívida</summary>
+      <p class="nota">INSS, Receita Federal, precatórios no Tribunal de Justiça, parcelas de dívida e repasses a autarquias. São obrigações, não compras.</p>
+      <figure class="chart" id="c-publicos"></figure>
+    </details>
+  </section>
+
+  <section aria-labelledby="h-metodo" class="metodo">
+    <h2 id="h-metodo">De onde saem esses números</h2>
+    <ul id="fontes"></ul>
+    <ul class="ressalvas">
+      <li><strong>Correção pela inflação:</strong> valores trazidos a preços médios de <span data-ano-fechado></span> pelo IPCA. Use o botão no topo para ver os valores da época.</li>
+      <li><strong>Ano corrente:</strong> <span data-ano-parcial></span> aparece só onde o indicador já é anual (pessoal e dívida usam os últimos 12 meses). Receita e despesa de um ano incompleto não são comparáveis, porque a despesa é empenhada no começo do ano e a receita entra mês a mês.</li>
+      <li><strong>Valores calculados por nós:</strong> em alguns anos o relatório traz o valor mas não o percentual, ou traz o caixa antes de descontar os restos a pagar. Nesses casos calculamos com os números do próprio relatório, e o ponto aparece marcado como "calculado" ao passar o mouse.</li>
+      <li><strong>Caixa:</strong> é o total de todas as fontes de recurso. Uma fonte com sobra pode esconder outra no vermelho. O detalhe por fonte está no Anexo 5 do RGF.</li>
+      <li><strong>Fornecedores:</strong> soma dos pagamentos registrados no AUDESP, sem a própria Prefeitura (folha e transferências internas). A separação entre "terceiros" e "órgãos públicos" é feita pelo nome do favorecido e pode errar.</li>
+    </ul>
+    <p class="nota">Dados atualizados em <span data-gerado></span>. Código e dados: aberto.</p>
+  </section>
+</main>
+<div class="tooltip" id="tooltip" role="status" hidden></div>
+</div>
+<script src="data/indicadores.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
