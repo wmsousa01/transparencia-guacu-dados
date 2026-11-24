@@ -1,7 +1,8 @@
 # Transparência Guaçu
 
 Infográfico da saúde financeira da Prefeitura de Mogi Guaçu (SP), montado a partir de dados
-oficiais e abertos. Sem backend: um script Python coleta e agrega, a página estática desenha.
+oficiais e abertos. No ar em **https://transparencia-guacu.vercel.app**, atualizado todo dia 10.
+Sem backend: um script Python coleta e agrega, a página estática desenha.
 
 ## Fontes
 
